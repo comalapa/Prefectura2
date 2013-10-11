@@ -111,7 +111,7 @@ public class altaPersona extends javax.swing.JDialog {
                 SwingUtilities.invokeLater(new Runnable() {
                 public void run() {
                 //EnviarTexto("La Huella Digital ha sido Capturada");
-                    System.out.println("La Huella ha sido capturada...");
+                    System.out.println("Leyendo Huella...");
                     
                     if(cargarHuella){
                         pnlHuella.setBackground(new Color(204,204,204));
@@ -147,7 +147,7 @@ public class altaPersona extends javax.swing.JDialog {
         // Si se da la inscripcion
         if (featuresinscripcion != null){
             try{
-                System.out.println("Las Caracteristicas de la Huella han sido creada");
+                
                 Reclutador.addFeatures(featuresinscripcion);// Agregar las caracteristicas de la huella a la plantilla a crear
 
                 // Dibuja la huella dactilar capturada.
@@ -167,6 +167,7 @@ public class altaPersona extends javax.swing.JDialog {
                         stop();
                         setTemplate(Reclutador.getTemplate());
 //                        EnviarTexto("La Plantilla de la Huella ha Sido Creada, ya puede Verificarla");
+                        System.out.println("Plantilla de Huella ha sido creada...");
 //                        btnIdentificar.setEnabled(true);
 //                        btnGuardar.setEnabled(true);
 //                        btnGuardar.grabFocus();
@@ -178,6 +179,10 @@ public class altaPersona extends javax.swing.JDialog {
                         //EstadoHuellas();
                         setTemplate(null);
 //                        JOptionPane.showMessageDialog(CapturaHuella.this, "La Plantilla de la Huella no pudo ser creada, Repita el Proceso", "Inscripcion de Huellas Dactilares", JOptionPane.ERROR_MESSAGE);
+                        System.out.println("La plantilla no pudo crearse");
+                        pnlHuella.setBackground(new Color(204,204,204));
+                        brAvance.setValue(0);
+                        cargarHuella = false;
                         start();
                         break;
                 }
@@ -598,7 +603,7 @@ public class altaPersona extends javax.swing.JDialog {
                                                     if(!cargarHuella){
                                                         System.out.println("No ha registrado la Huella");
                                                     }else{
-                                                        System.out.println("Todo anda bien");
+                                                        System.out.println("Todos los campos completos");
                                                         
                                                         try{
                                                             conexion co = new conexion();

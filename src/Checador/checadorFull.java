@@ -2,7 +2,10 @@ package Checador;
 
 import java.awt.GraphicsDevice;
 import java.awt.GraphicsEnvironment;
+import java.awt.Image;
 import java.util.GregorianCalendar;
+import javax.swing.Icon;
+import javax.swing.ImageIcon;
 import javax.swing.JFrame;
 
 public class checadorFull extends JFrame {
@@ -15,6 +18,7 @@ public class checadorFull extends JFrame {
         super("Nada");
         this.setUndecorated(true);
         initComponents();
+        
         this.setExtendedState(MAXIMIZED_BOTH);
         this.setDefaultCloseOperation(DISPOSE_ON_CLOSE);
         Hilo hiloReloj = new Hilo(lblHora);
@@ -103,7 +107,7 @@ public class checadorFull extends JFrame {
     private void initComponents() {
 
         lblTitulo = new javax.swing.JLabel();
-        jLabel2 = new javax.swing.JLabel();
+        lblLogo = new javax.swing.JLabel();
         lblHora = new javax.swing.JLabel();
         lblFecha = new javax.swing.JLabel();
 
@@ -121,11 +125,11 @@ public class checadorFull extends JFrame {
             }
         });
 
-        jLabel2.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
-        jLabel2.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Imagenes/est32Logo.jpg"))); // NOI18N
-        jLabel2.addMouseListener(new java.awt.event.MouseAdapter() {
+        lblLogo.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        lblLogo.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Imagenes/est32Logo.jpg"))); // NOI18N
+        lblLogo.addMouseListener(new java.awt.event.MouseAdapter() {
             public void mouseReleased(java.awt.event.MouseEvent evt) {
-                jLabel2MouseReleased(evt);
+                lblLogoMouseReleased(evt);
             }
         });
 
@@ -144,7 +148,7 @@ public class checadorFull extends JFrame {
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addComponent(lblTitulo, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-            .addComponent(jLabel2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+            .addComponent(lblLogo, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
             .addComponent(lblHora, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
@@ -157,7 +161,7 @@ public class checadorFull extends JFrame {
                 .addContainerGap()
                 .addComponent(lblTitulo)
                 .addGap(92, 92, 92)
-                .addComponent(jLabel2)
+                .addComponent(lblLogo)
                 .addGap(56, 56, 56)
                 .addComponent(lblHora)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
@@ -173,7 +177,7 @@ public class checadorFull extends JFrame {
         this.dispose();
     }//GEN-LAST:event_lblTituloMouseReleased
 
-    private void jLabel2MouseReleased(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jLabel2MouseReleased
+    private void lblLogoMouseReleased(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_lblLogoMouseReleased
         if(nip != null){
             nip.setVisible(false);
             nip.dispose();
@@ -182,7 +186,7 @@ public class checadorFull extends JFrame {
         }
             nip = new confirmarIdentidad(this,true);
             nip.setVisible(true);
-    }//GEN-LAST:event_jLabel2MouseReleased
+    }//GEN-LAST:event_lblLogoMouseReleased
 
     private void lblTituloMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_lblTituloMouseClicked
 
@@ -230,9 +234,9 @@ public class checadorFull extends JFrame {
         });
     }
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel lblFecha;
     private javax.swing.JLabel lblHora;
+    private javax.swing.JLabel lblLogo;
     private javax.swing.JLabel lblTitulo;
     // End of variables declaration//GEN-END:variables
 }
