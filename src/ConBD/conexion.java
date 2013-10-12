@@ -1,4 +1,4 @@
-package Conexion;
+package ConBD;
 
 
 import java.sql.*;

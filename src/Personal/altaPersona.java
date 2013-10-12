@@ -4,7 +4,7 @@
  */
 package Personal;
 
-import Conexion.conexion;
+import ConBD.conexion;
 import com.digitalpersona.onetouch.DPFPDataPurpose;
 import com.digitalpersona.onetouch.DPFPFeatureSet;
 import com.digitalpersona.onetouch.DPFPGlobal;
@@ -18,9 +18,16 @@ import com.digitalpersona.onetouch.processing.DPFPFeatureExtraction;
 import com.digitalpersona.onetouch.processing.DPFPImageQualityException;
 import static com.digitalpersona.onetouch.processing.DPFPTemplateStatus.TEMPLATE_STATUS_FAILED;
 import static com.digitalpersona.onetouch.processing.DPFPTemplateStatus.TEMPLATE_STATUS_READY;
+
+import ConBD.conexion2;
 import java.awt.Color;
 import java.awt.Image;
 import java.awt.event.WindowAdapter;
+import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.logging.Level;
@@ -59,6 +66,12 @@ public class altaPersona extends javax.swing.JDialog {
     private JFileChooser buscarFoto = null;
     
     private JFileChooser buscarFirma = null;
+    
+    String rutaFoto ="";
+    String rutaFirma = "";
+    
+    FileInputStream streamFoto = null;
+    FileInputStream streamFirma = null;
     
     // Constructor principal
     public altaPersona(java.awt.Frame parent, boolean modal) {
@@ -566,7 +579,7 @@ public class altaPersona extends javax.swing.JDialog {
     }// </editor-fold>//GEN-END:initComponents
 
     private void btnAceptarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnAceptarActionPerformed
-
+            
         if(txtCurp.getText().toString().length() <= 0) {
             System.out.println("Verifique su curp");
         }else{
@@ -606,13 +619,32 @@ public class altaPersona extends javax.swing.JDialog {
                                                         System.out.println("Todos los campos completos");
                                                         
                                                         try{
-                                                            conexion co = new conexion();
-                                                            co.conectar();
-                                                            ResultSet result = co.ejecutarSQLSelect("SELECT * FROM tbl_personal");
+                                                            conexion2 con = new conexion2();
+                                                            Connection c =  con.conectar();
+                                                            ByteArrayInputStream datosHuella = new ByteArrayInputStream(template.serialize());
+                                                            Integer tamHuella = template.serialize().length;
                                                             
-                                                            while(result.next()){
-                                                                System.out.println(result.getString("nombre"));
-                                                            }
+                                                            File foto = new File(rutaFoto);
+                                                            File firma = new File(rutaFirma);
+                                                            
+                                                            streamFoto = new FileInputStream(foto);
+                                                            streamFirma = new FileInputStream(firma);
+                                                            
+                                                            int tamFoto = (int) foto.length();
+                                                            int tamFirma = (int) firma.length();
+                                                            
+                                                            PreparedStatement stat = c.prepareStatement("INSERT INTO tbl_personal (nombre,apellido_p,apellido_m,curp,rfc,huella,nip,fecha_registro,estatus_id,rol_id,firma,foto) VALUES "
+                                                                    + "('"+txtNombre.getText()+"','"+txtApellidoP.getText()+"','"+txtApellidoM.getText()+"','"+txtCurp.getText()+"','"+txtRfc.getText()+"',?,'"+txtNip.getText()+"',NOW(),1,1,?,?);");
+                                                            System.out.println("INSERT INTO tbl_personal (nombre,apellido_p,apellido_m,curp,rfc,huella,nip,fecha_registro,estatus_id,rol_id,firma,foto) VALUES "
+                                                                    + "('"+txtNombre.getText()+"','"+txtApellidoP.getText()+"','"+txtApellidoM.getText()+"','"+txtCurp.getText()+"','"+txtRfc.getText()+"',?,'"+txtNip.getText()+"',NOW(),1,1,?,?);");
+                                                            stat.setBinaryStream(1, datosHuella,tamHuella);
+                                                            stat.setBinaryStream(2, streamFirma,tamFirma);
+                                                            stat.setBinaryStream(3, streamFoto,tamFoto);
+                                                            
+                                                            stat.execute();
+                                                            stat.close();
+                                                            
+                                                            System.out.println("Persona Guardada correctamente");
                                                             
                                                         }catch(Exception e){
                                                             e.printStackTrace();
@@ -648,7 +680,8 @@ public class altaPersona extends javax.swing.JDialog {
         FileNameExtensionFilter filtro = new FileNameExtensionFilter("Fotos","jpg","jpeg");
         buscarFoto.setFileFilter(filtro);
         if(buscarFoto.showOpenDialog(null) == JFileChooser.APPROVE_OPTION){
-            ImageIcon icono = new ImageIcon(buscarFoto.getSelectedFile().toString());
+            rutaFoto = buscarFoto.getSelectedFile().toString();
+            ImageIcon icono = new ImageIcon(rutaFoto);
             Icon ico = new ImageIcon(icono.getImage().getScaledInstance(lblFoto.getWidth()-5, lblFoto.getHeight()-5, Image.SCALE_DEFAULT));
             lblFoto.setIcon(ico);
             this.repaint();
@@ -666,7 +699,8 @@ public class altaPersona extends javax.swing.JDialog {
         FileNameExtensionFilter filtro = new FileNameExtensionFilter("Imagenes","jpg","jpeg");
         buscarFirma.setFileFilter(filtro);
         if(buscarFirma.showOpenDialog(null) == JFileChooser.APPROVE_OPTION){
-            ImageIcon firma = new ImageIcon(buscarFirma.getSelectedFile().toString());
+            rutaFirma = buscarFirma.getSelectedFile().toString();
+            ImageIcon firma = new ImageIcon(rutaFirma);
             Icon ico = new ImageIcon(firma.getImage().getScaledInstance(lblFirma.getWidth()-5,lblFirma.getHeight()-5,Image.SCALE_DEFAULT));
             lblFirma.setIcon(ico);
             this.repaint();
