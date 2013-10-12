@@ -4,6 +4,14 @@
  */
 package Personal;
 
+import ConBD.conexion2;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import javax.swing.ImageIcon;
 import javax.swing.table.DefaultTableModel;
 
     
@@ -12,7 +20,7 @@ public class listaPersonal extends javax.swing.JDialog {
     
     private String[] titulos = new String[]{ "Id", "Nombre", "CUPR", "RFC","Estatus", "", "", ""};
     public DefaultTableModel model=new DefaultTableModel(titulos,0);
-    private altaPersonal alta = null;
+    private altaPersona alta = null;
     
     public listaPersonal(java.awt.Frame parent, boolean modal) {
         super(parent, modal);
@@ -21,18 +29,39 @@ public class listaPersonal extends javax.swing.JDialog {
         initComponents();
         this.setLocationRelativeTo(this);
         getModel();
+        getData();
+    }
+    
+    private void getData(){
+        
+        conexion2 con = new conexion2();
+        Connection c = con.conectar();
+        try {
+            PreparedStatement stm;
+            stm = c.prepareStatement("SELECT id,nombre,curp,rfc,estatus_id FROM tbl_personal;");
+            ResultSet result = stm.executeQuery();
+            
+            while(result.next()){
+                model.addRow(new Object[]{result.getInt("id"),result.getString("nombre"),result.getString("curp"),result.getString("rfc"),result.getString("estatus_id"),"X","V","D"});
+            }
+            
+        } catch (SQLException ex) {
+            Logger.getLogger(listaPersonal.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        
+        
     }
     
     public void getModel(){
         tblPersonal.setModel(model);
         tblPersonal.getColumnModel().getColumn(0).setPreferredWidth(30);
         tblPersonal.getColumnModel().getColumn(1).setPreferredWidth(300);
-        tblPersonal.getColumnModel().getColumn(2).setPreferredWidth(100);
+        tblPersonal.getColumnModel().getColumn(2).setPreferredWidth(150);
         tblPersonal.getColumnModel().getColumn(3).setPreferredWidth(100);
         tblPersonal.getColumnModel().getColumn(4).setPreferredWidth(100);
-        tblPersonal.getColumnModel().getColumn(5).setPreferredWidth(30);
-        tblPersonal.getColumnModel().getColumn(6).setPreferredWidth(30);
-        tblPersonal.getColumnModel().getColumn(7).setPreferredWidth(30);
+        tblPersonal.getColumnModel().getColumn(5).setPreferredWidth(15);
+        tblPersonal.getColumnModel().getColumn(6).setPreferredWidth(15);
+        tblPersonal.getColumnModel().getColumn(7).setPreferredWidth(15);
         
     }
     
@@ -177,7 +206,7 @@ public class listaPersonal extends javax.swing.JDialog {
           alta = null;
           System.gc();
       }
-      alta = new altaPersonal(this,true);
+      alta = new altaPersona(this,true);
       alta.setVisible(true);
     }//GEN-LAST:event_jButton2ActionPerformed
 

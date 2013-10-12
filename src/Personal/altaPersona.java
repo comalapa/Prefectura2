@@ -74,7 +74,7 @@ public class altaPersona extends javax.swing.JDialog {
     FileInputStream streamFirma = null;
     
     // Constructor principal
-    public altaPersona(java.awt.Frame parent, boolean modal) {
+    public altaPersona(java.awt.Dialog parent, boolean modal) {
         super(parent, modal);
         initComponents();
         
@@ -619,32 +619,48 @@ public class altaPersona extends javax.swing.JDialog {
                                                         System.out.println("Todos los campos completos");
                                                         
                                                         try{
+                                                            
+                                                            
+                                                            
                                                             conexion2 con = new conexion2();
                                                             Connection c =  con.conectar();
                                                             ByteArrayInputStream datosHuella = new ByteArrayInputStream(template.serialize());
                                                             Integer tamHuella = template.serialize().length;
                                                             
-                                                            File foto = new File(rutaFoto);
-                                                            File firma = new File(rutaFirma);
+                                                            PreparedStatement buscarUsuario = c.prepareStatement("SELECT huella FROM tbl_personal WHERE curp='"+txtCurp.getText()+"' OR rfc = '"+txtRfc.getText()+"';");
+                                                            ResultSet result = buscarUsuario.executeQuery();
                                                             
-                                                            streamFoto = new FileInputStream(foto);
-                                                            streamFirma = new FileInputStream(firma);
+                                                            if(result.next()){
+                                                                System.out.println("El usuario fue encontrado");
+                                                                if(JOptionPane.showOptionDialog(this,"Otro Usuario ha sido registrado con la CURP o RFC\nque intenta ingresar.\nDesea actualiar la informacion?","Atencion",JOptionPane.YES_NO_CANCEL_OPTION,JOptionPane.QUESTION_MESSAGE,null,new Object[] { "Si", "No"},"Si") == JOptionPane.YES_OPTION){
+                                                                    System.out.println("Se tiene que hacer el update");
+                                                                }else{
+                                                                    System.out.println("No se tiene que hacer nada");
+                                                                }
+                                                            }else{
                                                             
-                                                            int tamFoto = (int) foto.length();
-                                                            int tamFirma = (int) firma.length();
-                                                            
-                                                            PreparedStatement stat = c.prepareStatement("INSERT INTO tbl_personal (nombre,apellido_p,apellido_m,curp,rfc,huella,nip,fecha_registro,estatus_id,rol_id,firma,foto) VALUES "
-                                                                    + "('"+txtNombre.getText()+"','"+txtApellidoP.getText()+"','"+txtApellidoM.getText()+"','"+txtCurp.getText()+"','"+txtRfc.getText()+"',?,'"+txtNip.getText()+"',NOW(),1,1,?,?);");
-                                                            System.out.println("INSERT INTO tbl_personal (nombre,apellido_p,apellido_m,curp,rfc,huella,nip,fecha_registro,estatus_id,rol_id,firma,foto) VALUES "
-                                                                    + "('"+txtNombre.getText()+"','"+txtApellidoP.getText()+"','"+txtApellidoM.getText()+"','"+txtCurp.getText()+"','"+txtRfc.getText()+"',?,'"+txtNip.getText()+"',NOW(),1,1,?,?);");
-                                                            stat.setBinaryStream(1, datosHuella,tamHuella);
-                                                            stat.setBinaryStream(2, streamFirma,tamFirma);
-                                                            stat.setBinaryStream(3, streamFoto,tamFoto);
-                                                            
-                                                            stat.execute();
-                                                            stat.close();
-                                                            
-                                                            System.out.println("Persona Guardada correctamente");
+                                                                File foto = new File(rutaFoto);
+                                                                File firma = new File(rutaFirma);
+
+                                                                streamFoto = new FileInputStream(foto);
+                                                                streamFirma = new FileInputStream(firma);
+
+                                                                int tamFoto = (int) foto.length();
+                                                                int tamFirma = (int) firma.length();
+
+                                                                PreparedStatement stat = c.prepareStatement("INSERT INTO tbl_personal (nombre,apellido_p,apellido_m,curp,rfc,huella,nip,fecha_registro,estatus_id,rol_id,firma,foto) VALUES "
+                                                                        + "('"+txtNombre.getText()+"','"+txtApellidoP.getText()+"','"+txtApellidoM.getText()+"','"+txtCurp.getText()+"','"+txtRfc.getText()+"',?,'"+txtNip.getText()+"',NOW(),1,1,?,?);");
+                                                                System.out.println("INSERT INTO tbl_personal (nombre,apellido_p,apellido_m,curp,rfc,huella,nip,fecha_registro,estatus_id,rol_id,firma,foto) VALUES "
+                                                                        + "('"+txtNombre.getText()+"','"+txtApellidoP.getText()+"','"+txtApellidoM.getText()+"','"+txtCurp.getText()+"','"+txtRfc.getText()+"',?,'"+txtNip.getText()+"',NOW(),1,1,?,?);");
+                                                                stat.setBinaryStream(1, datosHuella,tamHuella);
+                                                                stat.setBinaryStream(2, streamFirma,tamFirma);
+                                                                stat.setBinaryStream(3, streamFoto,tamFoto);
+
+                                                                stat.execute();
+                                                                stat.close();
+
+                                                                System.out.println("Persona Guardada correctamente");
+                                                            }
                                                             
                                                         }catch(Exception e){
                                                             e.printStackTrace();
@@ -738,7 +754,7 @@ public class altaPersona extends javax.swing.JDialog {
         /* Create and display the dialog */
         java.awt.EventQueue.invokeLater(new Runnable() {
             public void run() {
-                altaPersona dialog = new altaPersona(new javax.swing.JFrame(), true);
+                altaPersona dialog = new altaPersona(new javax.swing.JDialog(), true);
                 dialog.addWindowListener(new java.awt.event.WindowAdapter() {
                     @Override
                     public void windowClosing(java.awt.event.WindowEvent e) {
