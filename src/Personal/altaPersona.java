@@ -20,6 +20,8 @@ import static com.digitalpersona.onetouch.processing.DPFPTemplateStatus.TEMPLATE
 import static com.digitalpersona.onetouch.processing.DPFPTemplateStatus.TEMPLATE_STATUS_READY;
 
 import ConBD.conexion2;
+import com.digitalpersona.onetouch.verification.DPFPVerification;
+import com.digitalpersona.onetouch.verification.DPFPVerificationResult;
 import java.awt.Color;
 import java.awt.Image;
 import java.awt.event.WindowAdapter;
@@ -57,6 +59,8 @@ public class altaPersona extends javax.swing.JDialog {
     public DPFPFeatureSet featuresverificacion;
     
     private DPFPEnrollment Reclutador = DPFPGlobal.getEnrollmentFactory().createEnrollment();
+    
+    private DPFPVerification Verificador = DPFPGlobal.getVerificationFactory().createVerification();
     
     private DPFPTemplate template;
     
@@ -236,6 +240,11 @@ public class altaPersona extends javax.swing.JDialog {
         System.out.println("No se esta usando el Lector de Huella");
         //EnviarTexto("No se está usando el Lector de Huella Dactilar ");
     }
+    
+    public DPFPTemplate getTemplate() {
+        return template;
+    }
+    
     
     @SuppressWarnings("unchecked")
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
@@ -620,8 +629,6 @@ public class altaPersona extends javax.swing.JDialog {
                                                         
                                                         try{
                                                             
-                                                            
-                                                            
                                                             conexion2 con = new conexion2();
                                                             Connection c =  con.conectar();
                                                             ByteArrayInputStream datosHuella = new ByteArrayInputStream(template.serialize());
@@ -631,12 +638,23 @@ public class altaPersona extends javax.swing.JDialog {
                                                             ResultSet result = buscarUsuario.executeQuery();
                                                             
                                                             if(result.next()){
-                                                                System.out.println("El usuario fue encontrado");
-                                                                if(JOptionPane.showOptionDialog(this,"Otro Usuario ha sido registrado con la CURP o RFC\nque intenta ingresar.\nDesea actualiar la informacion?","Atencion",JOptionPane.YES_NO_CANCEL_OPTION,JOptionPane.QUESTION_MESSAGE,null,new Object[] { "Si", "No"},"Si") == JOptionPane.YES_OPTION){
-                                                                    System.out.println("Se tiene que hacer el update");
-                                                                }else{
-                                                                    System.out.println("No se tiene que hacer nada");
-                                                                }
+                                                                   //Lee la plantilla de la base de datos
+                                                                    byte templateBuffer[] = result.getBytes("huella");
+                                                                    //Crea una nueva plantilla a partir de la guardada en la base de datos
+                                                                    DPFPTemplate referenceTemplate = DPFPGlobal.getTemplateFactory().createTemplate(templateBuffer);
+                                                                    //Envia la plantilla creada al objeto contendor de Template del componente de huella digital
+                                                                    setTemplate(referenceTemplate);
+
+                                                                    // Compara las caracteriticas de la huella recientemente capturda con la
+                                                                    // plantilla guardada al usuario especifico en la base de datos
+                                                                    DPFPVerificationResult rsVerificacion = Verificador.verify(featuresverificacion, getTemplate());
+                                                                    
+                                                                    if(rsVerificacion.isVerified()){
+                                                                        JOptionPane.showMessageDialog(this, "La CURP y/o RFC estan asociados con la Huella del usuario que intenta registrar\nVerifique", "Error al registrar la Persona", JOptionPane.ERROR_MESSAGE);
+                                                                    }else{
+                                                                        JOptionPane.showMessageDialog(this, "La CURP y/o RFC ya estan registrados.\nLa huella no coincide con la de la Persona que intenta registrar.\nIntente con otro dedo", "Error al registrar la Persona", JOptionPane.ERROR_MESSAGE);
+                                                                    }
+                                                                    
                                                             }else{
                                                             
                                                                 File foto = new File(rutaFoto);
