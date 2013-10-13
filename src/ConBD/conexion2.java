@@ -33,7 +33,9 @@ public class conexion2 {
     public Connection conectar() {
         try {
             String ruta = "jdbc:mysql://";
+            System.out.println("jdbc:mysql://");
             String servidor = nomservidor + ":" + puerto + "/";
+            System.out.println(nomservidor + ":" + puerto + "/");
             Class.forName("com.mysql.jdbc.Driver");
             conn = DriverManager.getConnection(ruta + servidor + db, user, pass);
             if (conn != null) {

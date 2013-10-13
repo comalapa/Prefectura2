@@ -77,6 +77,8 @@ public class altaPersona extends javax.swing.JDialog {
     FileInputStream streamFoto = null;
     FileInputStream streamFirma = null;
     
+    int idPersona = 0;
+    
     // Constructor principal
     public altaPersona(java.awt.Dialog parent, boolean modal) {
         super(parent, modal);
@@ -98,6 +100,53 @@ public class altaPersona extends javax.swing.JDialog {
         });
         
     }
+    
+    // Para edicion de personal
+    public altaPersona(java.awt.Dialog parent, boolean modal, int idPersona){
+        super(parent, modal);
+        initComponents();
+        
+        this.idPersona = idPersona;
+        
+        this.setLocationRelativeTo(this);
+        this.setResizable(false);
+        
+        addWindowListener(new WindowAdapter() {
+            public void windowClosing(java.awt.event.WindowEvent evt) {
+                cierreVentana(evt);
+            }
+        });
+        
+        addWindowListener(new WindowAdapter() {
+            public void windowOpened(java.awt.event.WindowEvent evt) {
+                abrirVentana(evt);
+            }
+        });
+    }
+    
+    
+    private void getDataPersona(){
+        conexion2 con = new conexion2();
+        Connection c = con.conectar();
+        try {
+            
+            
+            PreparedStatement psResult = c.prepareStatement("Select curp,rfc,apellido_p, apellido_m, nombre, huella, nip, estatus_id, rol_id, firma, foto from tbl_personal WHERE id = '"+idPersona+"';");
+            ResultSet resultQ = psResult.executeQuery();
+            
+            if(resultQ.next()){
+                txtCurp.setText(resultQ.getString("curp"));
+            }else{
+                JOptionPane.showMessageDialog(this, "No se encontro los datos de la persona...","Error",JOptionPane.ERROR_MESSAGE);
+            }
+            
+            
+        } catch (SQLException ex) {
+            Logger.getLogger(altaPersona.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        
+    }
+    
     
     // Listener para el cierre de ventanas
     private void cierreVentana(java.awt.event.WindowEvent evt) {
@@ -668,8 +717,7 @@ public class altaPersona extends javax.swing.JDialog {
 
                                                                 PreparedStatement stat = c.prepareStatement("INSERT INTO tbl_personal (nombre,apellido_p,apellido_m,curp,rfc,huella,nip,fecha_registro,estatus_id,rol_id,firma,foto) VALUES "
                                                                         + "('"+txtNombre.getText()+"','"+txtApellidoP.getText()+"','"+txtApellidoM.getText()+"','"+txtCurp.getText()+"','"+txtRfc.getText()+"',?,'"+txtNip.getText()+"',NOW(),1,1,?,?);");
-                                                                System.out.println("INSERT INTO tbl_personal (nombre,apellido_p,apellido_m,curp,rfc,huella,nip,fecha_registro,estatus_id,rol_id,firma,foto) VALUES "
-                                                                        + "('"+txtNombre.getText()+"','"+txtApellidoP.getText()+"','"+txtApellidoM.getText()+"','"+txtCurp.getText()+"','"+txtRfc.getText()+"',?,'"+txtNip.getText()+"',NOW(),1,1,?,?);");
+                                                                
                                                                 stat.setBinaryStream(1, datosHuella,tamHuella);
                                                                 stat.setBinaryStream(2, streamFirma,tamFirma);
                                                                 stat.setBinaryStream(3, streamFoto,tamFoto);

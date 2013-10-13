@@ -13,12 +13,15 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.ImageIcon;
 import javax.swing.table.DefaultTableModel;
+import javax.swing.table.TableCellRenderer;
+import javax.swing.table.TableColumn;
+import util.renderTabla;
 
     
 
 public class listaPersonal extends javax.swing.JDialog {
     
-    private String[] titulos = new String[]{ "Id", "Nombre", "CUPR", "RFC","Estatus", "", "", ""};
+    private String[] titulos = new String[]{ "Id", "Nombre", "CUPR", "RFC","Estatus"};
     public DefaultTableModel model=new DefaultTableModel(titulos,0);
     private altaPersona alta = null;
     
@@ -38,12 +41,18 @@ public class listaPersonal extends javax.swing.JDialog {
         Connection c = con.conectar();
         try {
             PreparedStatement stm;
-            stm = c.prepareStatement("SELECT id,nombre,curp,rfc,estatus_id FROM tbl_personal;");
-            ResultSet result = stm.executeQuery();
+            System.out.println("SELECT id,nombre,curp,rfc,estatus_id FROM tbl_personal");
             
+            stm = c.prepareStatement("SELECT id,nombre,curp,rfc,estatus_id FROM tbl_personal;");
+            
+            ResultSet result = stm.executeQuery();
+
             while(result.next()){
-                model.addRow(new Object[]{result.getInt("id"),result.getString("nombre"),result.getString("curp"),result.getString("rfc"),result.getString("estatus_id"),"X","V","D"});
+                model.addRow(new Object[]{result.getInt("id"),result.getString("nombre"),result.getString("curp"),result.getString("rfc"),result.getString("estatus_id")});
+                
             }
+//            ImageIcon ico = new ImageIcon("Edit.png");
+//            tblPersonal.setValueAt(ico, 0, 5);
             
         } catch (SQLException ex) {
             Logger.getLogger(listaPersonal.class.getName()).log(Level.SEVERE, null, ex);
@@ -54,14 +63,22 @@ public class listaPersonal extends javax.swing.JDialog {
     
     public void getModel(){
         tblPersonal.setModel(model);
+        
+//        renderTabla rndr = new renderTabla("/src/Imagenes/Edit.png");
         tblPersonal.getColumnModel().getColumn(0).setPreferredWidth(30);
         tblPersonal.getColumnModel().getColumn(1).setPreferredWidth(300);
         tblPersonal.getColumnModel().getColumn(2).setPreferredWidth(150);
         tblPersonal.getColumnModel().getColumn(3).setPreferredWidth(100);
         tblPersonal.getColumnModel().getColumn(4).setPreferredWidth(100);
-        tblPersonal.getColumnModel().getColumn(5).setPreferredWidth(15);
-        tblPersonal.getColumnModel().getColumn(6).setPreferredWidth(15);
-        tblPersonal.getColumnModel().getColumn(7).setPreferredWidth(15);
+//        tblPersonal.getColumnModel().getColumn(5).setPreferredWidth(15);
+//        tblPersonal.getColumnModel().getColumn(6).setPreferredWidth(15);
+//        tblPersonal.getColumnModel().getColumn(7).setPreferredWidth(15);
+        
+//        tblPersonal.setDefaultRenderer(Integer.class, rndr);
+            
+        
+//        TableColumn col = tblPersonal.getColumnModel().getColumn(5);
+//        col.setCellRenderer(new renderTabla("/Imagenes/View.png"));
         
     }
     
@@ -82,6 +99,8 @@ public class listaPersonal extends javax.swing.JDialog {
         jButton2 = new javax.swing.JButton();
         jScrollPane1 = new javax.swing.JScrollPane();
         tblPersonal = new javax.swing.JTable();
+        btnModificar = new javax.swing.JButton();
+        btnEliminar = new javax.swing.JButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
 
@@ -115,6 +134,15 @@ public class listaPersonal extends javax.swing.JDialog {
         ));
         jScrollPane1.setViewportView(tblPersonal);
 
+        btnModificar.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Imagenes/iconos/Metroid_48_0010_Note.png"))); // NOI18N
+        btnModificar.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnModificarActionPerformed(evt);
+            }
+        });
+
+        btnEliminar.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Imagenes/iconos/Metroid_48_0003_Trash.png"))); // NOI18N
+
         javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
         jPanel1.setLayout(jPanel1Layout);
         jPanel1Layout.setHorizontalGroup(
@@ -140,9 +168,13 @@ public class listaPersonal extends javax.swing.JDialog {
                             .addComponent(jTextField4, javax.swing.GroupLayout.DEFAULT_SIZE, 241, Short.MAX_VALUE))
                         .addGap(18, 18, 18)
                         .addComponent(jButton1, javax.swing.GroupLayout.PREFERRED_SIZE, 65, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(40, 40, 40)
+                        .addComponent(jButton2, javax.swing.GroupLayout.PREFERRED_SIZE, 64, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(32, 32, 32)
+                        .addComponent(btnModificar, javax.swing.GroupLayout.PREFERRED_SIZE, 63, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                        .addComponent(jButton2, javax.swing.GroupLayout.PREFERRED_SIZE, 64, javax.swing.GroupLayout.PREFERRED_SIZE))
-                    .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 979, Short.MAX_VALUE))
+                        .addComponent(btnEliminar, javax.swing.GroupLayout.PREFERRED_SIZE, 65, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 1013, Short.MAX_VALUE))
                 .addContainerGap())
         );
         jPanel1Layout.setVerticalGroup(
@@ -169,15 +201,17 @@ public class listaPersonal extends javax.swing.JDialog {
                                     .addComponent(jLabel2)
                                     .addComponent(jTextField2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))))
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel1Layout.createSequentialGroup()
-                        .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                    .addGroup(jPanel1Layout.createSequentialGroup()
+                        .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addGroup(jPanel1Layout.createSequentialGroup()
                                 .addGap(0, 0, Short.MAX_VALUE)
                                 .addComponent(jButton2, javax.swing.GroupLayout.PREFERRED_SIZE, 68, javax.swing.GroupLayout.PREFERRED_SIZE))
-                            .addComponent(jButton1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                            .addComponent(jButton1, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                            .addComponent(btnModificar, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                            .addComponent(btnEliminar, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)))
                 .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 251, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                .addContainerGap())
         );
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
@@ -209,6 +243,12 @@ public class listaPersonal extends javax.swing.JDialog {
       alta = new altaPersona(this,true);
       alta.setVisible(true);
     }//GEN-LAST:event_jButton2ActionPerformed
+
+    private void btnModificarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnModificarActionPerformed
+        if(tblPersonal.getSelectedRow() != -1){
+            
+        }
+    }//GEN-LAST:event_btnModificarActionPerformed
 
     /**
      * @param args the command line arguments
@@ -252,6 +292,8 @@ public class listaPersonal extends javax.swing.JDialog {
         });
     }
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JButton btnEliminar;
+    private javax.swing.JButton btnModificar;
     private javax.swing.JButton jButton1;
     private javax.swing.JButton jButton2;
     private javax.swing.JLabel jLabel1;
