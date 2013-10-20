@@ -1,10 +1,13 @@
 package Checador;
 
+import ConBD.conexion2;
+import static Personal.altaPersona.TEMPLATE_PROPERTY;
 import com.digitalpersona.onetouch.DPFPCaptureFeedback;
 import com.digitalpersona.onetouch.DPFPDataPurpose;
 import com.digitalpersona.onetouch.DPFPFeatureSet;
 import com.digitalpersona.onetouch.DPFPGlobal;
 import com.digitalpersona.onetouch.DPFPSample;
+import com.digitalpersona.onetouch.DPFPTemplate;
 import com.digitalpersona.onetouch.capture.DPFPCapture;
 import com.digitalpersona.onetouch.capture.event.DPFPDataAdapter;
 import com.digitalpersona.onetouch.capture.event.DPFPDataEvent;
@@ -22,7 +25,13 @@ import com.digitalpersona.onetouch.verification.DPFPVerificationResult;
 import java.awt.Image;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.GregorianCalendar;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import javax.swing.ImageIcon;
 import javax.swing.JFrame;
@@ -35,6 +44,7 @@ public final class checadorFull extends JFrame {
     private confirmarIdentidad nip = null;
     private DPFPCapture capturer = DPFPGlobal.getCaptureFactory().createCapture();
     private DPFPVerification verificator = DPFPGlobal.getVerificationFactory().createVerification();
+    private DPFPTemplate template;
     
     public checadorFull() {
         super("Nada");
@@ -75,25 +85,53 @@ public final class checadorFull extends JFrame {
             capturer.stopCapture();
     }
    protected void process(DPFPSample sample){
-       drawPicture(convertSampleToBitmap(sample));
+//       drawPicture(convertSampleToBitmap(sample));
        
        // Process the sample and create a feature set for the enrollment purpose.
 		DPFPFeatureSet features = extractFeatures(sample, DPFPDataPurpose.DATA_PURPOSE_VERIFICATION);
-
-		// Check quality of the sample and start verification if it's good
-//		if (features != null)
-//		{
-//			// Compare the feature set with our template
-//			DPFPVerificationResult result = 
-//				verificator.verify(features, ((MainForm)getOwner()).getTemplate());
+                
+                conexion2 con = new conexion2();
+                Connection c = con.conectar();
+        try {
+            System.out.println("SELECT id, nombre, apellido_p, apellido_m, huella, estatus_id, rol_id FROM tbl_personal;");
+            PreparedStatement buscarUsuario = c.prepareStatement("SELECT id, nombre, apellido_p, apellido_m, huella, estatus_id, rol_id FROM tbl_personal;");
+            ResultSet result = buscarUsuario.executeQuery();
+            
+            
+            while(result.next()){
+                
+                //Lee la plantilla de la base de datos
+                byte templateBuffer[] = result.getBytes("huella");
+                //Crea una nueva plantilla a partir de la guardada en la base de datos
+                DPFPTemplate referenceTemplate = DPFPGlobal.getTemplateFactory().createTemplate(templateBuffer);
+                //Envia la plantilla creada al objeto contendor de Template del componente de huella digital
+                setTemplate(referenceTemplate);
+            
+                
+                
+//             Check quality of the sample and start verification if it's good
+		if (features != null)
+		{
+			// Compare the feature set with our template
+			DPFPVerificationResult resultVer = verificator.verify(features, getTemplate());
 //			updateStatus(result.getFalseAcceptRate());
-//			if (result.isVerified())
-//				makeReport("The fingerprint was VERIFIED.");
-//			else
-//				makeReport("The fingerprint wan NOT VERIFIED.");
-//		}
+			if (resultVer.isVerified())
+				System.out.println("Huella verificada.");
+			else
+				System.out.println("Huella NO verificada.");
+		}
+            }
+        } catch (SQLException ex) {
+            Logger.getLogger(checadorFull.class.getName()).log(Level.SEVERE, null, ex);
+        }
        
    }
+   
+   public void setTemplate(DPFPTemplate template) {
+        DPFPTemplate old = this.template;
+        this.template = template;
+        firePropertyChange(TEMPLATE_PROPERTY, old, template);
+    }
    
    protected DPFPFeatureSet extractFeatures(DPFPSample sample, DPFPDataPurpose purpose)
 	{
@@ -108,15 +146,12 @@ public final class checadorFull extends JFrame {
    public void drawPicture(Image image) {
             lblLogo.setIcon(new ImageIcon(image.getScaledInstance(200, lblLogo.getHeight(), Image.SCALE_DEFAULT)));
             
-            if(nip != null){
-                nip.setVisible(false);
-                nip.dispose();
-                nip = null;
-                System.gc();
-            }
-                nip = new confirmarIdentidad(this,true);
-                nip.setVisible(true);
             
+            
+    }
+   
+   public DPFPTemplate getTemplate() {
+        return template;
     }
    
    protected Image convertSampleToBitmap(DPFPSample sample) {
