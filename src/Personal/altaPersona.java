@@ -28,6 +28,7 @@ import java.awt.event.WindowAdapter;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
+import java.sql.Blob;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -37,6 +38,7 @@ import java.util.logging.Logger;
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
 import javax.swing.JFileChooser;
+import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.SwingUtilities;
 import javax.swing.filechooser.FileNameExtensionFilter;
@@ -50,6 +52,9 @@ public class altaPersona extends javax.swing.JDialog {
     boolean cargaFirma = false;
     boolean cargaFoto = false;
     boolean cargarHuella = false;
+    
+    public boolean registroOk = false;
+    public boolean updateOk = false;
     
     //Capturador de Huella
     private DPFPCapture Lector = DPFPGlobal.getCaptureFactory().createCapture();
@@ -77,7 +82,8 @@ public class altaPersona extends javax.swing.JDialog {
     FileInputStream streamFoto = null;
     FileInputStream streamFirma = null;
     
-    int idPersona = 0;
+    public int idPersona = 0;
+    public int actualizar = 0;
     
     // Constructor principal
     public altaPersona(java.awt.Dialog parent, boolean modal) {
@@ -101,41 +107,40 @@ public class altaPersona extends javax.swing.JDialog {
         
     }
     
-    // Para edicion de personal
-    public altaPersona(java.awt.Dialog parent, boolean modal, int idPersona){
-        super(parent, modal);
-        initComponents();
         
-        this.idPersona = idPersona;
-        
-        this.setLocationRelativeTo(this);
-        this.setResizable(false);
-        
-        addWindowListener(new WindowAdapter() {
-            public void windowClosing(java.awt.event.WindowEvent evt) {
-                cierreVentana(evt);
-            }
-        });
-        
-        addWindowListener(new WindowAdapter() {
-            public void windowOpened(java.awt.event.WindowEvent evt) {
-                abrirVentana(evt);
-            }
-        });
-    }
-    
-    
-    private void getDataPersona(){
+    public void getDataPersona(){
         conexion2 con = new conexion2();
         Connection c = con.conectar();
         try {
             
             
-            PreparedStatement psResult = c.prepareStatement("Select curp,rfc,apellido_p, apellido_m, nombre, huella, nip, estatus_id, rol_id, firma, foto from tbl_personal WHERE id = '"+idPersona+"';");
+            PreparedStatement psResult = c.prepareStatement("Select curp,rfc,apellido_p, apellido_m, nombre, direccion huella, nip, estatus_id, rol_id, firma, foto, direccion, telefono from tbl_personal WHERE id = '"+idPersona+"';");
             ResultSet resultQ = psResult.executeQuery();
             
             if(resultQ.next()){
                 txtCurp.setText(resultQ.getString("curp"));
+                txtCurp.setEditable(false);
+                txtRfc.setText(resultQ.getString("rfc"));
+                txtRfc.setEditable(false);
+                txtApellidoP.setText(resultQ.getString("apellido_p"));
+                txtApellidoM.setText(resultQ.getString("apellido_m"));
+                txtNombre.setText(resultQ.getString("nombre"));
+                txtNip.setText(resultQ.getString("nip"));
+                txtNip2.setText(resultQ.getString("nip"));
+                
+                txtDireccion.setText(resultQ.getString("direccion"));
+                txtTelefono.setText(resultQ.getString("telefono"));
+                
+                lblFirma.setIcon(getImagen(resultQ.getBlob("firma"),lblFirma));
+                cargaFirma = true;
+                btnBuscarFirma.setEnabled(false);
+                lblFoto.setIcon(getImagen(resultQ.getBlob("foto"),lblFoto));
+                cargaFoto = true;
+                btnBuscarFoto.setEnabled(false);
+                
+                cargarHuella = true;
+                
+                
             }else{
                 JOptionPane.showMessageDialog(this, "No se encontro los datos de la persona...","Error",JOptionPane.ERROR_MESSAGE);
             }
@@ -147,6 +152,34 @@ public class altaPersona extends javax.swing.JDialog {
         
     }
     
+    
+    
+    public Icon getImagen(Blob bytesImg, JLabel label) {
+        
+        
+            Icon ico = null;
+            
+            this.repaint();
+        
+        
+        ImageIcon imageIcon = null;
+        
+        
+        try {
+            
+                Blob bytesImagen = bytesImg;
+
+                byte[] bytesLeidos = bytesImagen.getBytes(1, (int) bytesImagen.length());
+                imageIcon = new ImageIcon(bytesLeidos);
+                
+                ico = new ImageIcon(imageIcon.getImage().getScaledInstance(label.getWidth()-5,label.getHeight()-5,Image.SCALE_DEFAULT));
+              
+            
+        } catch (SQLException ex) {
+            Logger.getLogger(altaPersona.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return ico;
+      }
     
     // Listener para el cierre de ventanas
     private void cierreVentana(java.awt.event.WindowEvent evt) {
@@ -680,58 +713,79 @@ public class altaPersona extends javax.swing.JDialog {
                                                             
                                                             conexion2 con = new conexion2();
                                                             Connection c =  con.conectar();
-                                                            ByteArrayInputStream datosHuella = new ByteArrayInputStream(template.serialize());
-                                                            Integer tamHuella = template.serialize().length;
-                                                            
-                                                            PreparedStatement buscarUsuario = c.prepareStatement("SELECT huella FROM tbl_personal WHERE curp='"+txtCurp.getText()+"' OR rfc = '"+txtRfc.getText()+"';");
-                                                            ResultSet result = buscarUsuario.executeQuery();
-                                                            
-                                                            if(result.next()){
-                                                                   //Lee la plantilla de la base de datos
-                                                                    byte templateBuffer[] = result.getBytes("huella");
-                                                                    //Crea una nueva plantilla a partir de la guardada en la base de datos
-                                                                    DPFPTemplate referenceTemplate = DPFPGlobal.getTemplateFactory().createTemplate(templateBuffer);
-                                                                    //Envia la plantilla creada al objeto contendor de Template del componente de huella digital
-                                                                    setTemplate(referenceTemplate);
+                                                            if(actualizar == 0){
+                                                                ByteArrayInputStream datosHuella = new ByteArrayInputStream(template.serialize());
+                                                                Integer tamHuella = template.serialize().length;
 
-                                                                    // Compara las caracteriticas de la huella recientemente capturda con la
-                                                                    // plantilla guardada al usuario especifico en la base de datos
-                                                                    DPFPVerificationResult rsVerificacion = Verificador.verify(featuresverificacion, getTemplate());
+
+
+                                                                PreparedStatement buscarUsuario = c.prepareStatement("SELECT huella FROM tbl_personal WHERE curp='"+txtCurp.getText()+"' OR rfc = '"+txtRfc.getText()+"';");
+                                                                ResultSet result = buscarUsuario.executeQuery();
+
+                                                                if(result.next()){
+                                                                       //Lee la plantilla de la base de datos
+                                                                        byte templateBuffer[] = result.getBytes("huella");
+                                                                        //Crea una nueva plantilla a partir de la guardada en la base de datos
+                                                                        DPFPTemplate referenceTemplate = DPFPGlobal.getTemplateFactory().createTemplate(templateBuffer);
+                                                                        //Envia la plantilla creada al objeto contendor de Template del componente de huella digital
+                                                                        setTemplate(referenceTemplate);
+
+                                                                        // Compara las caracteriticas de la huella recientemente capturda con la
+                                                                        // plantilla guardada al usuario especifico en la base de datos
+                                                                        DPFPVerificationResult rsVerificacion = Verificador.verify(featuresverificacion, getTemplate());
+
+                                                                        if(rsVerificacion.isVerified()){
+                                                                            JOptionPane.showMessageDialog(this, "La CURP y/o RFC estan asociados con la Huella del usuario que intenta registrar\nVerifique", "Error al registrar la Persona", JOptionPane.ERROR_MESSAGE);
+                                                                        }else{
+                                                                            JOptionPane.showMessageDialog(this, "La CURP y/o RFC ya estan registrados.\nLa huella no coincide con la de la Persona que intenta registrar.\nIntente con otro dedo", "Error al registrar la Persona", JOptionPane.ERROR_MESSAGE);
+                                                                        }
+                                                                        registroOk = false;
+
+                                                                }else{
+
+                                                                    File foto = new File(rutaFoto);
+                                                                    File firma = new File(rutaFirma);
+
+                                                                    streamFoto = new FileInputStream(foto);
+                                                                    streamFirma = new FileInputStream(firma);
+
+                                                                    int tamFoto = (int) foto.length();
+                                                                    int tamFirma = (int) firma.length();
+
+                                                                    PreparedStatement stat = c.prepareStatement("INSERT INTO tbl_personal (nombre,apellido_p,apellido_m,curp,rfc,huella,nip,fecha_registro,estatus_id,rol_id,firma,foto,direccion,telefono) VALUES "
+                                                                            + "('"+txtNombre.getText()+"','"+txtApellidoP.getText()+"','"+txtApellidoM.getText()+"','"+txtCurp.getText()+"','"+txtRfc.getText()+"',?,'"+txtNip.getText()+"',NOW(),1,1,?,?,'"+txtDireccion.getText()+"','"+txtTelefono.getText()+"');");
+
+                                                                    stat.setBinaryStream(1, datosHuella,tamHuella);
+                                                                    stat.setBinaryStream(2, streamFirma,tamFirma);
+                                                                    stat.setBinaryStream(3, streamFoto,tamFoto);
+
+                                                                    stat.execute();
+                                                                    stat.close();
+
+                                                                    System.out.println("Persona Guardada correctamente");
+                                                                    registroOk = true;
+                                                                    this.dispose();
+                                                                }
+                                                            }else {
+                                                                if(JOptionPane.showConfirmDialog(this, "Desea actualizar los datos de la Persona?","Atencion",JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION){
+                                                                    String sql = "UPDATE tbl_personal SET apellido_p = '"+txtApellidoP.getText()+"', apellido_m = '"+txtApellidoM.getText()+"',nombre = '"+txtNombre.getText()+"', direccion = '"+txtDireccion.getText()+"', telefono = '"+txtTelefono.getText()+"', nip = '"+txtNip.getText()+"' WHERE id = "+idPersona+";";
                                                                     
-                                                                    if(rsVerificacion.isVerified()){
-                                                                        JOptionPane.showMessageDialog(this, "La CURP y/o RFC estan asociados con la Huella del usuario que intenta registrar\nVerifique", "Error al registrar la Persona", JOptionPane.ERROR_MESSAGE);
+                                                                    conexion newCon = new conexion();
+                                                                    newCon.conectar();
+                                                                    if(newCon.ejecutarSQL(sql)){
+                                                                        JOptionPane.showMessageDialog(this, "Se actualizaron los datos correctamente");
+                                                                        updateOk = true;
+                                                                        this.dispose();
                                                                     }else{
-                                                                        JOptionPane.showMessageDialog(this, "La CURP y/o RFC ya estan registrados.\nLa huella no coincide con la de la Persona que intenta registrar.\nIntente con otro dedo", "Error al registrar la Persona", JOptionPane.ERROR_MESSAGE);
+                                                                        JOptionPane.showMessageDialog(this, "Problemas al actualziar");
+                                                                        updateOk = false;
                                                                     }
-                                                                    
-                                                            }else{
-                                                            
-                                                                File foto = new File(rutaFoto);
-                                                                File firma = new File(rutaFirma);
-
-                                                                streamFoto = new FileInputStream(foto);
-                                                                streamFirma = new FileInputStream(firma);
-
-                                                                int tamFoto = (int) foto.length();
-                                                                int tamFirma = (int) firma.length();
-
-                                                                PreparedStatement stat = c.prepareStatement("INSERT INTO tbl_personal (nombre,apellido_p,apellido_m,curp,rfc,huella,nip,fecha_registro,estatus_id,rol_id,firma,foto) VALUES "
-                                                                        + "('"+txtNombre.getText()+"','"+txtApellidoP.getText()+"','"+txtApellidoM.getText()+"','"+txtCurp.getText()+"','"+txtRfc.getText()+"',?,'"+txtNip.getText()+"',NOW(),1,1,?,?);");
-                                                                
-                                                                stat.setBinaryStream(1, datosHuella,tamHuella);
-                                                                stat.setBinaryStream(2, streamFirma,tamFirma);
-                                                                stat.setBinaryStream(3, streamFoto,tamFoto);
-
-                                                                stat.execute();
-                                                                stat.close();
-
-                                                                System.out.println("Persona Guardada correctamente");
+                                                                }
                                                             }
-                                                            
                                                         }catch(Exception e){
                                                             e.printStackTrace();
                                                         }
-;
+
                                                     }
                                                 }
                                             }

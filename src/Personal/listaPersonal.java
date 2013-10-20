@@ -4,14 +4,19 @@
  */
 package Personal;
 
+import ConBD.conexion;
 import ConBD.conexion2;
+import java.awt.Component;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.ImageIcon;
+import javax.swing.JOptionPane;
+import javax.swing.JTextField;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableColumn;
@@ -32,18 +37,17 @@ public class listaPersonal extends javax.swing.JDialog {
         initComponents();
         this.setLocationRelativeTo(this);
         getModel();
-        getData();
+        jButton1.doClick();
     }
     
-    private void getData(){
-        
+    private void getData(String cadena){
+        limpiarTabla();
         conexion2 con = new conexion2();
         Connection c = con.conectar();
         try {
             PreparedStatement stm;
-            System.out.println("SELECT id,nombre,curp,rfc,estatus_id FROM tbl_personal");
-            
-            stm = c.prepareStatement("SELECT id,nombre,curp,rfc,estatus_id FROM tbl_personal;");
+                        
+            stm = c.prepareStatement(cadena);
             
             ResultSet result = stm.executeQuery();
 
@@ -51,9 +55,7 @@ public class listaPersonal extends javax.swing.JDialog {
                 model.addRow(new Object[]{result.getInt("id"),result.getString("nombre"),result.getString("curp"),result.getString("rfc"),result.getString("estatus_id")});
                 
             }
-//            ImageIcon ico = new ImageIcon("Edit.png");
-//            tblPersonal.setValueAt(ico, 0, 5);
-            
+
         } catch (SQLException ex) {
             Logger.getLogger(listaPersonal.class.getName()).log(Level.SEVERE, null, ex);
         }
@@ -61,24 +63,17 @@ public class listaPersonal extends javax.swing.JDialog {
         
     }
     
+   
+    
     public void getModel(){
         tblPersonal.setModel(model);
         
-//        renderTabla rndr = new renderTabla("/src/Imagenes/Edit.png");
         tblPersonal.getColumnModel().getColumn(0).setPreferredWidth(30);
         tblPersonal.getColumnModel().getColumn(1).setPreferredWidth(300);
         tblPersonal.getColumnModel().getColumn(2).setPreferredWidth(150);
         tblPersonal.getColumnModel().getColumn(3).setPreferredWidth(100);
         tblPersonal.getColumnModel().getColumn(4).setPreferredWidth(100);
-//        tblPersonal.getColumnModel().getColumn(5).setPreferredWidth(15);
-//        tblPersonal.getColumnModel().getColumn(6).setPreferredWidth(15);
-//        tblPersonal.getColumnModel().getColumn(7).setPreferredWidth(15);
-        
-//        tblPersonal.setDefaultRenderer(Integer.class, rndr);
-            
-        
-//        TableColumn col = tblPersonal.getColumnModel().getColumn(5);
-//        col.setCellRenderer(new renderTabla("/Imagenes/View.png"));
+
         
     }
     
@@ -111,6 +106,30 @@ public class listaPersonal extends javax.swing.JDialog {
         jLabel3.setText("CURP");
 
         jLabel4.setText("RFC");
+
+        txtNombre.addKeyListener(new java.awt.event.KeyAdapter() {
+            public void keyReleased(java.awt.event.KeyEvent evt) {
+                txtNombreKeyReleased(evt);
+            }
+        });
+
+        txtApellidos.addKeyListener(new java.awt.event.KeyAdapter() {
+            public void keyReleased(java.awt.event.KeyEvent evt) {
+                txtApellidosKeyReleased(evt);
+            }
+        });
+
+        txtCurp.addKeyListener(new java.awt.event.KeyAdapter() {
+            public void keyReleased(java.awt.event.KeyEvent evt) {
+                txtCurpKeyReleased(evt);
+            }
+        });
+
+        txtRfc.addKeyListener(new java.awt.event.KeyAdapter() {
+            public void keyReleased(java.awt.event.KeyEvent evt) {
+                txtRfcKeyReleased(evt);
+            }
+        });
 
         jButton1.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Imagenes/iconos/Metroid_48_0007_Search.png"))); // NOI18N
         jButton1.addActionListener(new java.awt.event.ActionListener() {
@@ -147,6 +166,11 @@ public class listaPersonal extends javax.swing.JDialog {
         });
 
         btnEliminar.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Imagenes/iconos/Metroid_48_0003_Trash.png"))); // NOI18N
+        btnEliminar.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnEliminarActionPerformed(evt);
+            }
+        });
 
         javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
         jPanel1.setLayout(jPanel1Layout);
@@ -238,6 +262,11 @@ public class listaPersonal extends javax.swing.JDialog {
         pack();
     }// </editor-fold>//GEN-END:initComponents
 
+    private void limpiarTabla(){
+            while(model.getRowCount() > 0)
+                model.removeRow(0);
+    }
+    
     private void jButton2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton2ActionPerformed
       if(alta != null){
           alta.setVisible(false);
@@ -247,19 +276,40 @@ public class listaPersonal extends javax.swing.JDialog {
       }
       alta = new altaPersona(this,true);
       alta.setVisible(true);
+      
+      if(alta.registroOk)
+          jButton1.doClick();
+      
     }//GEN-LAST:event_jButton2ActionPerformed
 
     private void btnModificarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnModificarActionPerformed
         if(tblPersonal.getSelectedRow() != -1){
-            
+            if(JOptionPane.showConfirmDialog(this, "Desea Modificar los datos de la persona?","Atencion",JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION){
+                if(alta != null){
+                    alta.setVisible(false);
+                    alta.dispose();
+                    alta = null;
+                    System.gc();
+                }
+                alta = new altaPersona(this,true);
+                
+                alta.idPersona = Integer.parseInt(tblPersonal.getValueAt(tblPersonal.getSelectedRow(), 0).toString());
+                alta.getDataPersona();
+                alta.actualizar = 1;
+                alta.setVisible(true);
+                
+                if(alta.updateOk)
+                    jButton1.doClick();
+                
+            }
         }
     }//GEN-LAST:event_btnModificarActionPerformed
 
     private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
-        String cadena="";
+        String cadena="SELECT id, nombre, apellido_p, apellido_m, curp, rfc, estatus_id FROM tbl_personal WHERE estatus_id=1";
         
         if(txtNombre.getText().toString().trim().length() > 0){
-            cadena += " AND nombre LIKE '%"+txtNombre.getText()+"%'";
+            cadena += "  AND nombre LIKE '%"+txtNombre.getText()+"%'";
         }
         
         if(txtApellidos.getText().trim().toString().length() > 0){
@@ -274,10 +324,51 @@ public class listaPersonal extends javax.swing.JDialog {
             cadena += " AND rfc LIKE '%"+txtRfc.getText()+"%'";
         }
         
-        System.out.println("SELECT id, nombre, apellido_p, apellido_m, curp, rfc, estatus_id FROM tbl_personal WHERE 1=1" + cadena);
+        System.out.println(cadena + ";");
+        
+        getData(cadena);
+        
         
     }//GEN-LAST:event_jButton1ActionPerformed
 
+    private void txtNombreKeyReleased(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_txtNombreKeyReleased
+        txtNombre.setText(txtNombre.getText().toUpperCase());
+    }//GEN-LAST:event_txtNombreKeyReleased
+
+    private void txtCurpKeyReleased(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_txtCurpKeyReleased
+        txtCurp.setText(txtCurp.getText().toUpperCase());
+    }//GEN-LAST:event_txtCurpKeyReleased
+
+    private void txtApellidosKeyReleased(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_txtApellidosKeyReleased
+        txtApellidos.setText(txtApellidos.getText().toUpperCase());
+    }//GEN-LAST:event_txtApellidosKeyReleased
+
+    private void txtRfcKeyReleased(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_txtRfcKeyReleased
+        txtRfc.setText(txtRfc.getText().toUpperCase());
+    }//GEN-LAST:event_txtRfcKeyReleased
+
+    private void btnEliminarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnEliminarActionPerformed
+        if(tblPersonal.getSelectedRow() != -1){
+            if(JOptionPane.showConfirmDialog(this, "Realmente desea eliminar este registro?", "Advertencia", JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION){
+                 conexion con = new conexion();
+                 
+                con.conectar();
+                
+                if(con.ejecutarSQL("UPDATE tbl_personal SET estatus_id = 2 WHERE id = "+tblPersonal.getValueAt(tblPersonal.getSelectedRow(), 0)+";")){
+                    JOptionPane.showMessageDialog(this, "Persona borrada con exito...");
+                    jButton1.doClick();
+                }else{
+                    JOptionPane.showMessageDialog(this, "Hubo un problema al eliminar a la persona, intente mas tarde.");
+                }                 
+            }
+        }else{
+            JOptionPane.showMessageDialog(this, "Seleccione la Persona que desea Eliminar");
+        }
+    }//GEN-LAST:event_btnEliminarActionPerformed
+
+    
+     
+    
     /**
      * @param args the command line arguments
      */
