@@ -1,54 +1,175 @@
 package Checador;
 
-import java.awt.GraphicsDevice;
-import java.awt.GraphicsEnvironment;
+import com.digitalpersona.onetouch.DPFPCaptureFeedback;
+import com.digitalpersona.onetouch.DPFPDataPurpose;
+import com.digitalpersona.onetouch.DPFPFeatureSet;
+import com.digitalpersona.onetouch.DPFPGlobal;
+import com.digitalpersona.onetouch.DPFPSample;
+import com.digitalpersona.onetouch.capture.DPFPCapture;
+import com.digitalpersona.onetouch.capture.event.DPFPDataAdapter;
+import com.digitalpersona.onetouch.capture.event.DPFPDataEvent;
+import com.digitalpersona.onetouch.capture.event.DPFPImageQualityAdapter;
+import com.digitalpersona.onetouch.capture.event.DPFPImageQualityEvent;
+import com.digitalpersona.onetouch.capture.event.DPFPReaderStatusAdapter;
+import com.digitalpersona.onetouch.capture.event.DPFPReaderStatusEvent;
+import com.digitalpersona.onetouch.capture.event.DPFPSensorAdapter;
+import com.digitalpersona.onetouch.capture.event.DPFPSensorEvent;
+import com.digitalpersona.onetouch.processing.DPFPFeatureExtraction;
+import com.digitalpersona.onetouch.processing.DPFPImageQualityException;
+import com.digitalpersona.onetouch.verification.DPFPVerification;
+import com.digitalpersona.onetouch.verification.DPFPVerificationResult;
+
 import java.awt.Image;
+import java.awt.event.ComponentAdapter;
+import java.awt.event.ComponentEvent;
 import java.util.GregorianCalendar;
-import javax.swing.Icon;
+
 import javax.swing.ImageIcon;
 import javax.swing.JFrame;
+import javax.swing.SwingUtilities;
 
-public class checadorFull extends JFrame {
+public final class checadorFull extends JFrame {
     
     
 //    private final GraphicsDevice gd;
     private confirmarIdentidad nip = null;
+    private DPFPCapture capturer = DPFPGlobal.getCaptureFactory().createCapture();
+    private DPFPVerification verificator = DPFPGlobal.getVerificationFactory().createVerification();
     
     public checadorFull() {
         super("Nada");
         this.setUndecorated(true);
         initComponents();
         
+        
         this.setExtendedState(MAXIMIZED_BOTH);
         this.setDefaultCloseOperation(DISPOSE_ON_CLOSE);
         Hilo hiloReloj = new Hilo(lblHora);
         hiloReloj.start();
         
-        lblFecha.setText(armarFecha());
         
-        
-//        GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
-//        gd = ge.getDefaultScreenDevice();
-//        
-//        if(!gd.isFullScreenSupported()){
-//            System.out.println("WARNING: No hay soporte.\n");
-//        }else{ 
-//            System.out.println("INFO: Detectado soporte\n");
-//            try
-//        {
-//        // Activamos el modo a pantalla completa
-//            gd.setFullScreenWindow(this);
-//        }
-//        catch(Throwable e)
-//        {
-//            e.printStackTrace();
-//        }
-//        }
-        
+        lblFecha.setText(armarFecha());       
         
         this.repaint();
-    }
+        
+        this.addComponentListener(new ComponentAdapter() {
+            @Override public void componentShown(ComponentEvent e) {
+                    addListener();
+                    start();
+            }
+            @Override public void componentHidden(ComponentEvent e) {
+                    stop();
+            }
 
+    });
+    }
+    
+   protected void start()
+    {
+            capturer.startCapture();
+            System.out.println("Usando el lector de Huellas, ya puede escanear.");
+    } 
+    
+   protected void stop()
+    {
+            capturer.stopCapture();
+    }
+   protected void process(DPFPSample sample){
+       drawPicture(convertSampleToBitmap(sample));
+       
+       // Process the sample and create a feature set for the enrollment purpose.
+		DPFPFeatureSet features = extractFeatures(sample, DPFPDataPurpose.DATA_PURPOSE_VERIFICATION);
+
+		// Check quality of the sample and start verification if it's good
+//		if (features != null)
+//		{
+//			// Compare the feature set with our template
+//			DPFPVerificationResult result = 
+//				verificator.verify(features, ((MainForm)getOwner()).getTemplate());
+//			updateStatus(result.getFalseAcceptRate());
+//			if (result.isVerified())
+//				makeReport("The fingerprint was VERIFIED.");
+//			else
+//				makeReport("The fingerprint wan NOT VERIFIED.");
+//		}
+       
+   }
+   
+   protected DPFPFeatureSet extractFeatures(DPFPSample sample, DPFPDataPurpose purpose)
+	{
+		DPFPFeatureExtraction extractor = DPFPGlobal.getFeatureExtractionFactory().createFeatureExtraction();
+		try {
+			return extractor.createFeatureSet(sample, purpose);
+		} catch (DPFPImageQualityException e) {
+			return null;
+		}
+	}
+   
+   public void drawPicture(Image image) {
+            lblLogo.setIcon(new ImageIcon(image.getScaledInstance(200, lblLogo.getHeight(), Image.SCALE_DEFAULT)));
+            
+            if(nip != null){
+                nip.setVisible(false);
+                nip.dispose();
+                nip = null;
+                System.gc();
+            }
+                nip = new confirmarIdentidad(this,true);
+                nip.setVisible(true);
+            
+    }
+   
+   protected Image convertSampleToBitmap(DPFPSample sample) {
+            return DPFPGlobal.getSampleConversionFactory().createImage(sample);
+    }
+   
+    public void addListener(){
+        capturer.addDataListener(new DPFPDataAdapter() {
+			@Override public void dataAcquired(final DPFPDataEvent e) {
+				SwingUtilities.invokeLater(new Runnable() {	public void run() {
+					System.out.println("La huella fue capturada.");
+					System.out.println("Coloque el mismo dedo otra vez.");
+					process(e.getSample());
+				}});
+			}
+		});
+		capturer.addReaderStatusListener(new DPFPReaderStatusAdapter() {
+			@Override public void readerConnected(final DPFPReaderStatusEvent e) {
+				SwingUtilities.invokeLater(new Runnable() {	public void run() {
+		 			System.out.println("El lector de Huellas se ha conectado.");
+				}});
+			}
+			@Override public void readerDisconnected(final DPFPReaderStatusEvent e) {
+				SwingUtilities.invokeLater(new Runnable() {	public void run() {
+					System.out.println("El lector de hiellas se ha desconectado.");
+				}});
+			}
+		});
+		capturer.addSensorListener(new DPFPSensorAdapter() {
+			@Override public void fingerTouched(final DPFPSensorEvent e) {
+				SwingUtilities.invokeLater(new Runnable() {	public void run() {
+					System.out.println("El lector de huellas ha sido tocado.");
+				}});
+			}
+			@Override public void fingerGone(final DPFPSensorEvent e) {
+				SwingUtilities.invokeLater(new Runnable() {	public void run() {
+					System.out.println("El dedo ha sido removido del lector de huellas.");
+				}});
+			}
+		});
+		capturer.addImageQualityListener(new DPFPImageQualityAdapter() {
+			@Override public void onImageQuality(final DPFPImageQualityEvent e) {
+				SwingUtilities.invokeLater(new Runnable() {	public void run() {
+					if (e.getFeedback().equals(DPFPCaptureFeedback.CAPTURE_FEEDBACK_GOOD))
+						System.out.println("La calidad de la huella es buena.");
+					else
+						System.out.println("La calidad de la huella es mala.");
+				}});
+			}
+		});
+    }
+    
+    
     //Conseguir Fecha para el sistema.
     
     public String nombreDia(int noDia){
@@ -148,12 +269,12 @@ public class checadorFull extends JFrame {
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addComponent(lblTitulo, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-            .addComponent(lblLogo, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
             .addComponent(lblHora, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
                 .addComponent(lblFecha, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addContainerGap())
+            .addComponent(lblLogo, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -162,7 +283,7 @@ public class checadorFull extends JFrame {
                 .addComponent(lblTitulo)
                 .addGap(92, 92, 92)
                 .addComponent(lblLogo)
-                .addGap(56, 56, 56)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addComponent(lblHora)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(lblFecha)
@@ -178,14 +299,7 @@ public class checadorFull extends JFrame {
     }//GEN-LAST:event_lblTituloMouseReleased
 
     private void lblLogoMouseReleased(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_lblLogoMouseReleased
-        if(nip != null){
-            nip.setVisible(false);
-            nip.dispose();
-            nip = null;
-            System.gc();
-        }
-            nip = new confirmarIdentidad(this,true);
-            nip.setVisible(true);
+
     }//GEN-LAST:event_lblLogoMouseReleased
 
     private void lblTituloMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_lblTituloMouseClicked
