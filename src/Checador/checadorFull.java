@@ -1,6 +1,7 @@
 package Checador;
 
 import ConBD.conexion2;
+import Personal.altaPersona;
 import static Personal.altaPersona.TEMPLATE_PROPERTY;
 import com.digitalpersona.onetouch.DPFPCaptureFeedback;
 import com.digitalpersona.onetouch.DPFPDataPurpose;
@@ -23,8 +24,11 @@ import com.digitalpersona.onetouch.verification.DPFPVerification;
 import com.digitalpersona.onetouch.verification.DPFPVerificationResult;
 
 import java.awt.Image;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
+import java.sql.Blob;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -32,10 +36,13 @@ import java.sql.SQLException;
 import java.util.GregorianCalendar;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.swing.Icon;
 
 import javax.swing.ImageIcon;
 import javax.swing.JFrame;
+import javax.swing.JLabel;
 import javax.swing.SwingUtilities;
+import javax.swing.Timer;
 
 public final class checadorFull extends JFrame {
     
@@ -45,6 +52,8 @@ public final class checadorFull extends JFrame {
     private DPFPCapture capturer = DPFPGlobal.getCaptureFactory().createCapture();
     private DPFPVerification verificator = DPFPGlobal.getVerificationFactory().createVerification();
     private DPFPTemplate template;
+    
+    int cierre = 1;
     
     public checadorFull() {
         super("Nada");
@@ -93,8 +102,8 @@ public final class checadorFull extends JFrame {
                 conexion2 con = new conexion2();
                 Connection c = con.conectar();
         try {
-            System.out.println("SELECT id, nombre, apellido_p, apellido_m, huella, estatus_id, rol_id FROM tbl_personal;");
-            PreparedStatement buscarUsuario = c.prepareStatement("SELECT id, nombre, apellido_p, apellido_m, huella, estatus_id, rol_id FROM tbl_personal;");
+            System.out.println("SELECT id, nombre, apellido_p, apellido_m, huella, estatus_id, rol_id,foto,nip FROM tbl_personal;");
+            PreparedStatement buscarUsuario = c.prepareStatement("SELECT id, nombre, apellido_p, apellido_m, huella, estatus_id, rol_id,foto,nip FROM tbl_personal;");
             ResultSet result = buscarUsuario.executeQuery();
             
             
@@ -115,9 +124,37 @@ public final class checadorFull extends JFrame {
 			// Compare the feature set with our template
 			DPFPVerificationResult resultVer = verificator.verify(features, getTemplate());
 //			updateStatus(result.getFalseAcceptRate());
-			if (resultVer.isVerified())
-				System.out.println("Huella verificada.");
-			else
+			if (resultVer.isVerified()){
+                            System.out.println("La huella fue verificada OK");
+                            if(nip != null){
+                                nip.setVisible(false);
+                                nip.dispose();
+                                nip = null;
+                                System.gc();
+                            }
+                            nip = new confirmarIdentidad(this,true);
+                            nip.setFoto(result.getBlob("foto"));
+                            nip.pass = result.getString("nip");
+                            nip.setNombre(result.getString("nombre") + " " + result.getString("apellido_p") + " " + result.getString("apellido_m"));
+                            
+                            
+                            Timer tiempo = new Timer(10000, new ActionListener() {                              
+                                public void actionPerformed(ActionEvent e) {
+                                    
+                                        System.out.println("Entro aqui");
+                                        nip.setVisible(false);
+                                        nip.dispose();
+                                    
+                                }
+                            });
+                            
+                            tiempo.setRepeats(false);
+                            
+                            tiempo.start();
+                            nip.setVisible(true);
+                            
+                            break;                            
+                        }else
 				System.out.println("Huella NO verificada.");
 		}
             }
@@ -126,6 +163,8 @@ public final class checadorFull extends JFrame {
         }
        
    }
+   
+   
    
    public void setTemplate(DPFPTemplate template) {
         DPFPTemplate old = this.template;
