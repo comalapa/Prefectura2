@@ -52,7 +52,7 @@ public class listaPersonal extends javax.swing.JDialog {
             ResultSet result = stm.executeQuery();
 
             while(result.next()){
-                model.addRow(new Object[]{result.getInt("id"),result.getString("nombre"),result.getString("curp"),result.getString("rfc"),result.getString("estatus_id")});
+                model.addRow(new Object[]{result.getInt("id"),result.getString("nombre"),result.getString("curp"),result.getString("rfc"),result.getString("nomEstatus")});
                 
             }
 
@@ -306,7 +306,7 @@ public class listaPersonal extends javax.swing.JDialog {
     }//GEN-LAST:event_btnModificarActionPerformed
 
     private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
-        String cadena="SELECT id, nombre, apellido_p, apellido_m, curp, rfc, estatus_id FROM tbl_personal WHERE estatus_id=1";
+        String cadena="SELECT a.id, a.nombre, a.apellido_p, a.apellido_m, a.curp, a.rfc, a.estatus_id, b.nombre AS nomEstatus FROM tbl_personal a, tbl_estatus b WHERE a.estatus_id = 1 AND a.estatus_id=b.id";
         
         if(txtNombre.getText().toString().trim().length() > 0){
             cadena += "  AND nombre LIKE '%"+txtNombre.getText()+"%'";
