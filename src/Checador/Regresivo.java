@@ -5,8 +5,10 @@
 package Checador;
 
 import java.awt.Component;
+import static java.lang.Thread.sleep;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.swing.JDialog;
 
 /**
  *
@@ -14,18 +16,33 @@ import java.util.logging.Logger;
  */
 public class Regresivo extends Thread{
     
-    private Component componente;
+    private JDialog componente;
+    private int time;
+    int reg = 0;
+    boolean ok = true;
     
-    
-    public Regresivo(Component comp){
+    public Regresivo(JDialog comp,int tiempo){
+        
         this.componente = comp;
+        this.time = tiempo;
+        
     }
     
     public void run(){
         try {
-            sleep(3000);
-            componente.setVisible(false);
-            System.out.println("Registro Completado");
+            while(ok){
+                sleep(1000);
+                System.out.println("Tiempo: " + reg);
+                reg++;
+                if(reg == time){
+                    componente.setVisible(false);
+                    componente.dispose();
+                    System.out.println("Registro Completado");
+                    ok = false;
+                }
+            }
+            
+                
         } catch (InterruptedException ex) {
             Logger.getLogger(Regresivo.class.getName()).log(Level.SEVERE, null, ex);
         }

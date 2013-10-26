@@ -55,6 +55,8 @@ public final class checadorFull extends JFrame {
     
     int cierre = 1;
     
+    public Timer tiempo = null;
+    
     public checadorFull() {
         super("Nada");
         this.setUndecorated(true);
@@ -136,23 +138,7 @@ public final class checadorFull extends JFrame {
                             nip.setFoto(result.getBlob("foto"));
                             nip.pass = result.getString("nip");
                             nip.setNombre(result.getString("nombre") + " " + result.getString("apellido_p") + " " + result.getString("apellido_m"));
-                            
-                            
-                            Timer tiempo = new Timer(10000, new ActionListener() {                              
-                                public void actionPerformed(ActionEvent e) {
-                                    
-                                        System.out.println("Entro aqui");
-                                        nip.setVisible(false);
-                                        nip.dispose();
-                                    
-                                }
-                            });
-                            
-                            tiempo.setRepeats(false);
-                            
-                            tiempo.start();
                             nip.setVisible(true);
-                            
                             break;                            
                         }else
 				System.out.println("Huella NO verificada.");
