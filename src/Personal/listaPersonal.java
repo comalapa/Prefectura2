@@ -52,7 +52,7 @@ public class listaPersonal extends javax.swing.JDialog {
             ResultSet result = stm.executeQuery();
 
             while(result.next()){
-                model.addRow(new Object[]{result.getInt("id"),result.getString("nombre"),result.getString("curp"),result.getString("rfc"),result.getString("nomEstatus")});
+                model.addRow(new Object[]{result.getInt("id"),result.getString("nomPersonal") + " " + result.getString("apellido_p") + " " + result.getString("apellido_m"),result.getString("curp"),result.getString("rfc"),result.getString("nomEstatus")});
                 
             }
 
@@ -306,22 +306,26 @@ public class listaPersonal extends javax.swing.JDialog {
     }//GEN-LAST:event_btnModificarActionPerformed
 
     private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
-        String cadena="SELECT a.id, a.nombre, a.apellido_p, a.apellido_m, a.curp, a.rfc, a.estatus_id, b.nombre AS nomEstatus FROM tbl_personal a, tbl_estatus b WHERE a.estatus_id = 1 AND a.estatus_id=b.id";
+        String cadena="SELECT DISTINCT a.id, a.nombre AS nomPersonal, a.apellido_p, a.apellido_m, a.curp, a.rfc, a.estatus_id, b.nombre AS nomEstatus FROM tbl_personal a, tbl_estatus b WHERE a.estatus_id = 1 AND a.estatus_id=b.id";
+        String cadena2="SELECT DISTINCT a.id, a.nombre AS nomPersonal, a.apellido_p, a.apellido_m, a.curp, a.rfc, a.estatus_id, b.nombre AS nomEstatus FROM tbl_personal a, tbl_estatus b WHERE a.estatus_id = 1 AND a.estatus_id=b.id";
         
         if(txtNombre.getText().toString().trim().length() > 0){
-            cadena += "  AND nombre LIKE '%"+txtNombre.getText()+"%'";
+            cadena += "  AND a.nombre LIKE '%"+txtNombre.getText()+"%'";
+            cadena2 += "  AND a.nombre LIKE '%"+txtNombre.getText()+"%'";
         }
         
         if(txtApellidos.getText().trim().toString().length() > 0){
-            cadena += " AND apellido_p LIKE '%"+txtApellidos.getText()+"%' OR apellido_m LIKE '%"+txtApellidos.getText()+"%' ";
+            cadena += " AND a.apellido_p LIKE '%"+txtApellidos.getText()+"%' UNION " + cadena2 + " AND a.apellido_m LIKE '%"+txtApellidos.getText()+"%'";
         }
         
         if(txtCurp.getText().trim().toString().length() > 0){
-            cadena += " AND curp LIKE '%"+txtCurp.getText()+"%'";
+            cadena += " AND a.curp LIKE '%"+txtCurp.getText()+"%'";
+            cadena2 += " AND a.curp LIKE '%"+txtCurp.getText()+"%'";
         }
         
         if(txtRfc.getText().trim().toString().length() > 0){
-            cadena += " AND rfc LIKE '%"+txtRfc.getText()+"%'";
+            cadena += " AND a.rfc LIKE '%"+txtRfc.getText()+"%'";
+            cadena2 += " AND a.rfc LIKE '%"+txtRfc.getText()+"%'";
         }
         
         System.out.println(cadena + ";");

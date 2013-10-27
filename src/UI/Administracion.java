@@ -6,6 +6,7 @@ package UI;
 
 import Checador.checadorFull;
 import Personal.listaPersonal;
+import configuracion.Configuraciones;
 
 /**
  *
@@ -18,7 +19,7 @@ public class Administracion extends javax.swing.JFrame {
     listaPersonal personal = null;
     public int contador = 0;
     public boolean iniciaTimpo = false;
-    
+    private Configuraciones config = null;
     /**
      * Creates new form Administracion
      */
@@ -71,7 +72,13 @@ public class Administracion extends javax.swing.JFrame {
 
         jMenu2.setText("Modulos");
 
+        jMenuItem2.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_S, java.awt.event.InputEvent.CTRL_MASK));
         jMenuItem2.setText("Configuraciones");
+        jMenuItem2.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jMenuItem2ActionPerformed(evt);
+            }
+        });
         jMenu2.add(jMenuItem2);
 
         jMenuItem3.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_P, java.awt.event.InputEvent.CTRL_MASK));
@@ -148,6 +155,17 @@ public class Administracion extends javax.swing.JFrame {
         personal = new listaPersonal(this,true);
         personal.setVisible(true);
     }//GEN-LAST:event_jMenuItem3ActionPerformed
+
+    private void jMenuItem2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItem2ActionPerformed
+        if(config != null){
+            config.setVisible(false);
+            config.dispose();
+            config = null;
+            System.gc();
+        }
+        config = new Configuraciones(this,true);
+        config.setVisible(true);
+    }//GEN-LAST:event_jMenuItem2ActionPerformed
 
     /**
      * @param args the command line arguments

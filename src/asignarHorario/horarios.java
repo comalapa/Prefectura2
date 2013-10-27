@@ -22,6 +22,8 @@ public class horarios extends javax.swing.JDialog {
     private String[] titulos = new String[]{ "Id", "Hora Entrada", "Hora Salida"};
     public DefaultTableModel model=new DefaultTableModel(titulos,0);
     
+    conexion con = new conexion();
+    Statement stat = con.conectar();
     
     public horarios(java.awt.Frame parent, boolean modal) {
         super(parent, modal);
@@ -32,9 +34,8 @@ public class horarios extends javax.swing.JDialog {
         getHorarios();
         getDias();
         
+        
         actualizarTabla();
-        
-        
     }
 
     public void getModel(){
@@ -57,10 +58,9 @@ public class horarios extends javax.swing.JDialog {
     }
     
     private void getHorarios(){
-        conexion con = new conexion();
-        Statement stat = con.conectar();
-        
+               
         cmbHorario.removeAllItems();
+        cmbHorario.addItem("Seleccione...");
         
         if(stat != null){
             ResultSet result = con.ejecutarSQLSelect("SELECT * FROM tbl_horario");
@@ -77,10 +77,9 @@ public class horarios extends javax.swing.JDialog {
     }
     
     private void getPersonal(){
-        conexion con = new conexion();
-        Statement stat = con.conectar();
         
         cmbPersonal.removeAllItems();
+        cmbPersonal.addItem("Seleccione...");
         
         if(stat != null){
             ResultSet result = con.ejecutarSQLSelect("SELECT id, nombre, apellido_p, apellido_m, curp FROM tbl_personal;");
@@ -98,6 +97,7 @@ public class horarios extends javax.swing.JDialog {
     
     private void getDias(){
         cmbDiaSemana.removeAllItems();
+        cmbDiaSemana.addItem("Seleccione...");
         cmbDiaSemana.addItem("Lunes");
         cmbDiaSemana.addItem("Martes");
         cmbDiaSemana.addItem("Miercoles");
@@ -120,7 +120,6 @@ public class horarios extends javax.swing.JDialog {
         cmbHorario = new javax.swing.JComboBox();
         btnAgregar = new javax.swing.JButton();
         btnRemover = new javax.swing.JButton();
-        btnAceptar = new javax.swing.JButton();
         jScrollPane1 = new javax.swing.JScrollPane();
         tblHorarios = new javax.swing.JTable();
 
@@ -162,6 +161,11 @@ public class horarios extends javax.swing.JDialog {
         });
 
         btnAgregar.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Imagenes/iconos/Metroid_48_0044_Alarm.png"))); // NOI18N
+        btnAgregar.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                btnAgregarMouseClicked(evt);
+            }
+        });
         btnAgregar.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 btnAgregarActionPerformed(evt);
@@ -169,8 +173,11 @@ public class horarios extends javax.swing.JDialog {
         });
 
         btnRemover.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Imagenes/iconos/Metroid_48_0003_Trash.png"))); // NOI18N
-
-        btnAceptar.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Imagenes/iconos/Metroid_48_0001_Tasks.png"))); // NOI18N
+        btnRemover.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnRemoverActionPerformed(evt);
+            }
+        });
 
         javax.swing.GroupLayout jPanel2Layout = new javax.swing.GroupLayout(jPanel2);
         jPanel2.setLayout(jPanel2Layout);
@@ -190,10 +197,8 @@ public class horarios extends javax.swing.JDialog {
                             .addComponent(cmbHorario, 0, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                         .addGap(18, 18, 18)
                         .addComponent(btnAgregar, javax.swing.GroupLayout.PREFERRED_SIZE, 63, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                        .addComponent(btnRemover, javax.swing.GroupLayout.PREFERRED_SIZE, 63, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                        .addComponent(btnAceptar, javax.swing.GroupLayout.PREFERRED_SIZE, 63, javax.swing.GroupLayout.PREFERRED_SIZE))
+                        .addGap(18, 18, 18)
+                        .addComponent(btnRemover, javax.swing.GroupLayout.PREFERRED_SIZE, 63, javax.swing.GroupLayout.PREFERRED_SIZE))
                     .addComponent(cmbPersonal, 0, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
@@ -220,9 +225,7 @@ public class horarios extends javax.swing.JDialog {
                         .addGap(0, 0, Short.MAX_VALUE))
                     .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel2Layout.createSequentialGroup()
                         .addGap(0, 0, Short.MAX_VALUE)
-                        .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(btnAceptar)
-                            .addComponent(btnRemover))))
+                        .addComponent(btnRemover)))
                 .addContainerGap())
         );
 
@@ -243,15 +246,14 @@ public class horarios extends javax.swing.JDialog {
         jPanel1.setLayout(jPanel1Layout);
         jPanel1Layout.setHorizontalGroup(
             jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanel1Layout.createSequentialGroup()
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel1Layout.createSequentialGroup()
                 .addContainerGap()
-                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                    .addComponent(jScrollPane1, javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(jPanel1Layout.createSequentialGroup()
                         .addGap(0, 0, Short.MAX_VALUE)
-                        .addComponent(jPanel2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                    .addGroup(jPanel1Layout.createSequentialGroup()
-                        .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 600, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGap(0, 0, Short.MAX_VALUE))))
+                        .addComponent(jPanel2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                .addContainerGap())
         );
         jPanel1Layout.setVerticalGroup(
             jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -266,9 +268,7 @@ public class horarios extends javax.swing.JDialog {
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(layout.createSequentialGroup()
-                .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(0, 9, Short.MAX_VALUE))
+            .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -283,18 +283,36 @@ public class horarios extends javax.swing.JDialog {
     }//GEN-LAST:event_cmbDiaSemanaActionPerformed
 
     private void btnAgregarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnAgregarActionPerformed
-        String[] splitPersona = cmbPersonal.getSelectedItem().toString().split("-");
-        int idPersona = Integer.parseInt(splitPersona[0].toString());
+           
+    }//GEN-LAST:event_btnAgregarActionPerformed
+
+    private void cmbHorarioActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cmbHorarioActionPerformed
+
+    }//GEN-LAST:event_cmbHorarioActionPerformed
+
+    private void cmbPersonalActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cmbPersonalActionPerformed
+        actualizarTabla();
+    }//GEN-LAST:event_cmbPersonalActionPerformed
+
+    private void cmbPersonalItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_cmbPersonalItemStateChanged
+        
+            
+    }//GEN-LAST:event_cmbPersonalItemStateChanged
+
+    private void btnAgregarMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_btnAgregarMouseClicked
+        int idPersona = 0;
+        
+        if(cmbPersonal.getSelectedIndex() != 0){
+            String[] splitPersona = cmbPersonal.getSelectedItem().toString().split("-");
+            idPersona = Integer.parseInt(splitPersona[0].toString());
+        }
         
         String[] horas = cmbHorario.getSelectedItem().toString().split("-");
         
         String horaEntrada = horas[0].toString().trim();
         String horaSalida = horas[1].toString().trim();
         
-        System.out.println("idPersona = " + idPersona + " Hora Entrada: " + horaEntrada + " Hora Salida: " + horaSalida + " Numero de Dia = " + getNoDia());
-        
-        conexion con = new conexion();
-        Statement stat = con.conectar();
+        System.out.println("idPersona = " + idPersona + " Hora Entrada: " + horaEntrada + " Hora Salida: " + horaSalida + " Numero de Dia = " + getNoDia());        
         
         if(stat != null){
             try {
@@ -310,35 +328,31 @@ public class horarios extends javax.swing.JDialog {
             } catch (SQLException ex) {
                 Logger.getLogger(horarios.class.getName()).log(Level.SEVERE, null, ex);
             }
-            
+            actualizarTabla();
         }
-        
-        actualizarTabla();
-    }//GEN-LAST:event_btnAgregarActionPerformed
+    }//GEN-LAST:event_btnAgregarMouseClicked
 
-    private void cmbHorarioActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cmbHorarioActionPerformed
-
-    }//GEN-LAST:event_cmbHorarioActionPerformed
-
-    private void cmbPersonalActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cmbPersonalActionPerformed
-        // TODO add your handling code here:
-    }//GEN-LAST:event_cmbPersonalActionPerformed
-
-    private void cmbPersonalItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_cmbPersonalItemStateChanged
-        actualizarTabla();
-    }//GEN-LAST:event_cmbPersonalItemStateChanged
+    private void btnRemoverActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnRemoverActionPerformed
+        if(tblHorarios.getSelectedRow() != -1){
+            // Falta
+        }else{
+            JOptionPane.showMessageDialog(this, "Seleccione el horario que sesea eliminar");
+        }
+    }//GEN-LAST:event_btnRemoverActionPerformed
 
     private void actualizarTabla(){
         getModel();
         deleteRowModelTable();
         
-        String[] splitPersona = cmbPersonal.getSelectedItem().toString().split("-");
-        int idPersona = Integer.parseInt(splitPersona[0].toString());
+        int idPersona = 0;
         
-        conexion con = new conexion();
-        Statement stat = con.conectar();
+        if(cmbPersonal.getSelectedIndex() > 0){
+            String[] splits = cmbPersonal.getSelectedItem().toString().split("-");
+            idPersona = Integer.parseInt(splits[0].toString());
+        }
         
-       if(stat != null){
+        
+       if(idPersona != 0){
            ResultSet result= con.ejecutarSQLSelect("SELECT * from tbl_horario_personal WHERE personal_id = " + idPersona  + " AND dia_semana = " + getNoDia() + ";");
             try {
                 
@@ -418,7 +432,6 @@ public class horarios extends javax.swing.JDialog {
         });
     }
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JButton btnAceptar;
     private javax.swing.JButton btnAgregar;
     private javax.swing.JButton btnRemover;
     private javax.swing.JComboBox cmbDiaSemana;
