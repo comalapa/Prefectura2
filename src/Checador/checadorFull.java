@@ -1,5 +1,6 @@
 package Checador;
 
+import ConBD.conexion;
 import ConBD.conexion2;
 import Personal.altaPersona;
 import static Personal.altaPersona.TEMPLATE_PROPERTY;
@@ -33,6 +34,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.GregorianCalendar;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -56,6 +58,15 @@ public final class checadorFull extends JFrame {
     int cierre = 1;
     
     public Timer tiempo = null;
+    
+    
+    conexion con = new conexion();
+    Statement stat = con.conectar();
+    
+    int minFalta = 0;
+    int minRetardo = 0;
+    int NumeroDia = -1;
+    
     
     public checadorFull() {
         super("Nada");
@@ -82,8 +93,36 @@ public final class checadorFull extends JFrame {
                     stop();
             }
 
-    });
+        });
+        
+        getDataConfig();
+        System.out.println("Dia de la semana: " + this.NumeroDia);
+        
     }
+    
+    
+    
+    private void getDataConfig(){
+        ResultSet result = con.ejecutarSQLSelect("SELECT min_retardo, min_falta, nombre_escuela, logo_escuela FROM tbl_config");
+        try {
+            
+            if(result.next()){
+                lblTitulo.setText(result.getString("nombre_escuela"));
+                minFalta = result.getInt("min_falta");
+                minRetardo = result.getInt("min_retardo");
+                lblLogo.setIcon(getImagen(result.getBlob("logo_escuela"), lblLogo));
+                
+                System.out.println("Configuraciones obtenidas correctamente");
+            }else{
+                System.out.println("Hubo un problema al intentar obtener los datos de configuracion.");
+            }
+            
+        } catch (SQLException ex) {
+            Logger.getLogger(checadorFull.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+    
+    
     
    protected void start()
     {
@@ -135,9 +174,13 @@ public final class checadorFull extends JFrame {
                                 System.gc();
                             }
                             nip = new confirmarIdentidad(this,true);
+                            nip.idPersona = result.getInt("id");
                             nip.setFoto(result.getBlob("foto"));
                             nip.pass = result.getString("nip");
                             nip.setNombre(result.getString("nombre") + " " + result.getString("apellido_p") + " " + result.getString("apellido_m"));
+                            nip.minRetardo = this.minRetardo;
+                            nip.minFalta = this.minFalta;
+                            nip.dia = this.NumeroDia;
                             nip.setVisible(true);
                             break;                            
                         }else
@@ -150,7 +193,32 @@ public final class checadorFull extends JFrame {
        
    }
    
-   
+   public Icon getImagen(Blob bytesImg, JLabel label) {
+        
+        
+            Icon ico = null;
+            
+            this.repaint();
+        
+        
+        ImageIcon imageIcon = null;
+        
+        
+        try {
+            
+                Blob bytesImagen = bytesImg;
+
+                byte[] bytesLeidos = bytesImagen.getBytes(1, (int) bytesImagen.length());
+                imageIcon = new ImageIcon(bytesLeidos);
+                
+                ico = new ImageIcon(imageIcon.getImage().getScaledInstance(label.getWidth()-5,label.getHeight()-5,Image.SCALE_DEFAULT));
+              
+            
+        } catch (SQLException ex) {
+            Logger.getLogger(altaPersona.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return ico;
+      }
    
    public void setTemplate(DPFPTemplate template) {
         DPFPTemplate old = this.template;
@@ -272,7 +340,9 @@ public final class checadorFull extends JFrame {
         int anio = fecha.get(fecha.YEAR);
         int diaSemana = fecha.get(fecha.DAY_OF_WEEK);
         
-        System.out.println(diaSemana);
+        NumeroDia = diaSemana;
+        
+        System.out.println(NumeroDia);
         
         String miFecha = nombreDia(diaSemana) + " " + String.valueOf(dia) + " de " + nombreMes(mes) + " del " + String.valueOf(anio);
         return miFecha;
@@ -307,7 +377,6 @@ public final class checadorFull extends JFrame {
         });
 
         lblLogo.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
-        lblLogo.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Imagenes/est32Logo.jpg"))); // NOI18N
         lblLogo.addMouseListener(new java.awt.event.MouseAdapter() {
             public void mouseReleased(java.awt.event.MouseEvent evt) {
                 lblLogoMouseReleased(evt);
@@ -334,16 +403,19 @@ public final class checadorFull extends JFrame {
                 .addContainerGap()
                 .addComponent(lblFecha, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addContainerGap())
-            .addComponent(lblLogo, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                .addGap(200, 200, 200)
+                .addComponent(lblLogo, javax.swing.GroupLayout.DEFAULT_SIZE, 0, Short.MAX_VALUE)
+                .addGap(192, 192, 192))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
                 .addComponent(lblTitulo)
-                .addGap(92, 92, 92)
-                .addComponent(lblLogo)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addGap(41, 41, 41)
+                .addComponent(lblLogo, javax.swing.GroupLayout.PREFERRED_SIZE, 318, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(lblHora)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(lblFecha)

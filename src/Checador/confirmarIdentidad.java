@@ -1,28 +1,36 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
+
 package Checador;
 
+import ConBD.conexion;
 import Personal.altaPersona;
 import java.awt.Color;
 import java.awt.Image;
 import java.sql.Blob;
+import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Statement;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
 
 import javax.swing.JLabel;
-
-
-
-
+import javax.swing.JOptionPane;
 
 public class confirmarIdentidad extends javax.swing.JDialog {
 
     public String pass = "";
+    public int minRetardo = 0;
+    public int minFalta = 0;
+    public int dia = -1;
+    public int idPersona = 0;
+    
+    public conexion con = new conexion();
+    public Statement stat = con.conectar();
+    
         
     public confirmarIdentidad(java.awt.Frame parent, boolean modal) {
         super(parent, modal);
@@ -143,6 +151,51 @@ public class confirmarIdentidad extends javax.swing.JDialog {
     }//GEN-LAST:event_txtNipKeyReleased
 
     private void registrarEntrada(){
+        
+        
+        Date ahora = new Date();
+        SimpleDateFormat sdf = new SimpleDateFormat("HH:mm:ss");
+        
+        String horaActual = sdf.format(ahora);
+        
+        System.out.println("Hora Actual = " + horaActual);
+        
+        ResultSet result = con.ejecutarSQLSelect("SELECT * FROM tbl_horario_personal WHERE dia_semana =" + this.dia + " AND personal_id =" + idPersona + " ORDER BY entrada ASC LIMIT 1;");
+        try {
+            
+            if(result.next()){
+                String horaEntrada = result.getString("entrada");
+                String horaRetardo = horaEntrada.substring(0,3)+minRetardo+":00";
+                String horaFalta = horaEntrada.substring(0,3)+minFalta+":00";
+                
+                System.out.println("Hora de Entrada: " + horaEntrada + "| Hora con Retardo: " + horaRetardo + "| Hora con Falta: " + horaFalta);
+                
+                try {
+                    Date hActual,hEntrada,hRetardo,hFalta;
+                    hActual = sdf.parse(horaActual);
+                    hEntrada = sdf.parse(horaEntrada);
+                    hRetardo = sdf.parse(horaRetardo);
+                    hFalta = sdf.parse(horaFalta);
+                    
+                    if(hActual.compareTo(hEntrada)<=0){
+                        System.out.println("Asistencia");
+                    }else if(hActual.compareTo(hEntrada)>0 && hActual.compareTo(hRetardo)<=0){
+                        System.out.println("Retardo");
+                    }else if(hActual.compareTo(hFalta) > 0 ){
+                        System.out.println("Falta");
+                    }
+                    
+                } catch (ParseException ex) {
+                    Logger.getLogger(confirmarIdentidad.class.getName()).log(Level.SEVERE, null, ex);
+                }
+                
+                
+            }else{
+                JOptionPane.showMessageDialog(this, "Usted no tiene Horarios Asignados, Reporte este incidente con el Administrador del Sistema");
+            }
+        } catch (SQLException ex) {
+            Logger.getLogger(confirmarIdentidad.class.getName()).log(Level.SEVERE, null, ex);
+        }
         
     }
     

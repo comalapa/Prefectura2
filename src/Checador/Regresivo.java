@@ -37,7 +37,7 @@ public class Regresivo extends Thread{
                 if(reg == time){
                     componente.setVisible(false);
                     componente.dispose();
-                    System.out.println("Registro Completado");
+                    System.out.println("Tiempo de espera terminado");
                     ok = false;
                 }
             }

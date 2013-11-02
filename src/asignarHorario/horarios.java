@@ -36,6 +36,8 @@ public class horarios extends javax.swing.JDialog {
         
         
         actualizarTabla();
+        
+        
     }
 
     public void getModel(){
@@ -334,7 +336,14 @@ public class horarios extends javax.swing.JDialog {
 
     private void btnRemoverActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnRemoverActionPerformed
         if(tblHorarios.getSelectedRow() != -1){
-            // Falta
+            if(JOptionPane.showConfirmDialog(this,"Esta seguro que desea eliminar este horario?", "Alerta",JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION){
+                if(con.ejecutarSQL("DELETE FROM tbl_horario_personal WHERE id=" + tblHorarios.getValueAt(tblHorarios.getSelectedRow(), 0) )){
+                    JOptionPane.showMessageDialog(this, "Horario eliminado correctamente");
+                    actualizarTabla();
+                }else{
+                    System.out.println("Error al eliminar el horario");
+                }
+            }
         }else{
             JOptionPane.showMessageDialog(this, "Seleccione el horario que sesea eliminar");
         }
@@ -353,7 +362,7 @@ public class horarios extends javax.swing.JDialog {
         
         
        if(idPersona != 0){
-           ResultSet result= con.ejecutarSQLSelect("SELECT * from tbl_horario_personal WHERE personal_id = " + idPersona  + " AND dia_semana = " + getNoDia() + ";");
+           ResultSet result= con.ejecutarSQLSelect("SELECT * from tbl_horario_personal WHERE personal_id = " + idPersona  + " AND dia_semana = " + getNoDia() + " ORDER BY entrada ASC;");
             try {
                 
                 while(result.next()){
@@ -369,22 +378,22 @@ public class horarios extends javax.swing.JDialog {
     private int getNoDia(){
         int diaSemana  = 0;
         if(cmbDiaSemana.getSelectedItem().equals("Lunes")){
-            diaSemana = 1;
-        }
-        if(cmbDiaSemana.getSelectedItem().equals("Martes")){
             diaSemana = 2;
         }
-        
-        if(cmbDiaSemana.getSelectedItem().equals("Miercoles")){
+        if(cmbDiaSemana.getSelectedItem().equals("Martes")){
             diaSemana = 3;
         }
         
-        if(cmbDiaSemana.getSelectedItem().equals("Jueves")){
+        if(cmbDiaSemana.getSelectedItem().equals("Miercoles")){
             diaSemana = 4;
         }
         
-        if(cmbDiaSemana.getSelectedItem().equals("Viernes")){
+        if(cmbDiaSemana.getSelectedItem().equals("Jueves")){
             diaSemana = 5;
+        }
+        
+        if(cmbDiaSemana.getSelectedItem().equals("Viernes")){
+            diaSemana = 6;
         }
         
         return diaSemana;

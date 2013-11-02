@@ -5,7 +5,9 @@
 package UI;
 
 import Checador.checadorFull;
+import Justificaciones.JustificarIncidencia;
 import Personal.listaPersonal;
+import asignarHorario.horarios;
 import configuracion.Configuraciones;
 
 /**
@@ -20,6 +22,8 @@ public class Administracion extends javax.swing.JFrame {
     public int contador = 0;
     public boolean iniciaTimpo = false;
     private Configuraciones config = null;
+    private horarios horas = null;
+    private JustificarIncidencia incidencias = null;
     /**
      * Creates new form Administracion
      */
@@ -90,13 +94,25 @@ public class Administracion extends javax.swing.JFrame {
         });
         jMenu2.add(jMenuItem3);
 
+        jMenuItem4.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_H, java.awt.event.InputEvent.CTRL_MASK));
         jMenuItem4.setText("Horarios");
+        jMenuItem4.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jMenuItem4ActionPerformed(evt);
+            }
+        });
         jMenu2.add(jMenuItem4);
 
         jMenuItem6.setText("Reportes");
         jMenu2.add(jMenuItem6);
 
-        jMenuItem7.setText("Catalogos");
+        jMenuItem7.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_I, java.awt.event.InputEvent.CTRL_MASK));
+        jMenuItem7.setText("Incidencias");
+        jMenuItem7.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jMenuItem7ActionPerformed(evt);
+            }
+        });
         jMenu2.add(jMenuItem7);
         jMenu2.add(jSeparator1);
 
@@ -165,7 +181,31 @@ public class Administracion extends javax.swing.JFrame {
         }
         config = new Configuraciones(this,true);
         config.setVisible(true);
+
     }//GEN-LAST:event_jMenuItem2ActionPerformed
+
+    private void jMenuItem4ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItem4ActionPerformed
+        
+        if(horas != null){
+            horas.setVisible(false);
+            horas.dispose();
+            horas = null;
+            System.gc();
+        }
+        horas = new horarios(this,true);
+        horas.setVisible(true);
+    }//GEN-LAST:event_jMenuItem4ActionPerformed
+
+    private void jMenuItem7ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItem7ActionPerformed
+        if(incidencias != null){
+            incidencias.setVisible(false);
+            incidencias.dispose();
+            incidencias = null;
+            System.gc();
+        }
+        incidencias = new JustificarIncidencia(this, true);
+        incidencias.setVisible(true);
+    }//GEN-LAST:event_jMenuItem7ActionPerformed
 
     /**
      * @param args the command line arguments
